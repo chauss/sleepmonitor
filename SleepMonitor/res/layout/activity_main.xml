@@ -29,4 +29,13 @@
         android:onClick="buttonToggled"
         android:text="@string/playRecord" />
 
+    <Button
+        android:id="@+id/analyzeBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="66dp"
+        android:layout_marginTop="30dp"
+        android:onClick="onAnalyze"
+        android:text="@string/analyze" />
+
 </LinearLayout>

@@ -8,5 +8,6 @@
     <string name="stopRecording">Stop Recording</string>
     <string name="playRecord">Play Record</string>
     <string name="stopPlayback">Stop Playback</string>
+    <string name="analyze">Analyze</string>
 
 </resources>

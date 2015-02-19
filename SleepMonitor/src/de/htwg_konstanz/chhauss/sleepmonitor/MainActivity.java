@@ -2,11 +2,11 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import android.app.Activity;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.Menu;
@@ -18,7 +18,6 @@ import android.widget.Button;
 public class MainActivity extends Activity {
 
 	private MediaPlayer mediaPlayer;
-	private MediaRecorder recorder;
 	private String OUTPUT_FILE;
 	private File record;
 	
@@ -27,6 +26,10 @@ public class MainActivity extends Activity {
 	
 	private Button recordBtn;
 	private Button playBtn;
+	
+	private SoundMeter sm;
+	
+	private double[] values;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +47,23 @@ public class MainActivity extends Activity {
     	recordBtn = (Button) findViewById(R.id.recordBtn);
     	playBtn = (Button) findViewById(R.id.playBtn);
     	record = new File(OUTPUT_FILE);
+    	sm = new SoundMeter(OUTPUT_FILE);
+    	values = new double[20];
     	
-    	if(!record.exists()) {
-    		playBtn.setEnabled(false);
-    	}
+    	checkForRecord();
     	
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
-    @Override
+    private void checkForRecord() {
+    	if(!record.exists()) {
+    		playBtn.setEnabled(false);
+    	}
+	}
+
+
+	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -69,6 +79,7 @@ public class MainActivity extends Activity {
     	switch(v.getId()) {
     	case R.id.recordBtn:
     		if(!recording){
+    			System.out.println("1");
     			try {
     				startRecording();
     			} catch(Exception e) {
@@ -103,6 +114,25 @@ public class MainActivity extends Activity {
     	}
     }
     
+    public void onAnalyze(View v) throws IllegalStateException, IOException  {
+		sm.start();
+		System.out.println("Started SoundMeter");
+		sm.getAmplitude();
+		try {
+			for(int i = 0; i < 20; i++) {
+				Thread.sleep(1000);
+				values[i] = sm.getAmplitude();
+			}
+			System.out.println(Arrays.toString(values));
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		sm.stop();
+		System.out.println("Stopped SoundMeter");
+		checkForRecord();
+    }
+    
     private void startRecording() throws IllegalStateException, IOException {
 		// delete old record
 		if(record.exists()) {
@@ -110,13 +140,7 @@ public class MainActivity extends Activity {
 		}
 		
 		// Recording
-		recorder = new MediaRecorder();
-		recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-		recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-		recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-		recorder.setOutputFile(OUTPUT_FILE);
-		recorder.prepare();
-		recorder.start();
+		sm.start();
 		
 		recording = true;
 		recordBtn.setText(R.string.stopRecording);
@@ -124,12 +148,11 @@ public class MainActivity extends Activity {
 	}
     
 	private void stopRecording() {
-		recorder.stop();
-		recorder.release();
+		sm.stop();
 		
 		recording = false;
 		recordBtn.setText(R.string.startRecording);
-		playBtn.setEnabled(true);
+		checkForRecord();
 	}
     
 	private void playRecord() throws IllegalStateException, IOException {
@@ -156,6 +179,7 @@ public class MainActivity extends Activity {
 	
 	private void stopPlayback() {
 		mediaPlayer.stop();
+		mediaPlayer.reset();
 		mediaPlayer.release();
 		
 		playing = false;
