@@ -12,7 +12,7 @@
     tools:context="de.htwg_konstanz.chhauss.sleepmonitor.MainActivity" >
 
     <Button
-        android:id="@+id/startRecording"
+        android:id="@+id/recordBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="66dp"
@@ -21,30 +21,12 @@
         android:text="@string/startRecording" />
 
     <Button
-        android:id="@+id/stopRecording"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="66dp"
-        android:layout_marginTop="30dp"
-        android:onClick="buttonToggled"
-        android:text="@string/stopRecording" />
-
-    <Button
-        android:id="@+id/playRecord"
+        android:id="@+id/playBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="66dp"
         android:layout_marginTop="30dp"
         android:onClick="buttonToggled"
         android:text="@string/playRecord" />
-
-    <Button
-        android:id="@+id/stopPlayback"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="66dp"
-        android:layout_marginTop="30dp"
-        android:onClick="buttonToggled"
-        android:text="@string/stopPlayback" />
 
 </LinearLayout>
