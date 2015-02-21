@@ -5,6 +5,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 
 import android.app.ListActivity;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
@@ -76,7 +77,12 @@ public class MyRecords extends ListActivity{
 	}
 
 	private void playRecord(String record_path) throws IllegalStateException, IOException {
+		if(mediaPlayer != null) {
+			stopPlayback();
+		}
+		
 		mediaPlayer = new MediaPlayer();
+		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
 			@Override
 			public void onCompletion(MediaPlayer mp) {
@@ -93,5 +99,6 @@ public class MyRecords extends ListActivity{
 		mediaPlayer.stop();
 		mediaPlayer.reset();
 		mediaPlayer.release();
+		mediaPlayer = null;
 	}
 }
