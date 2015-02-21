@@ -1,20 +1,22 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
+import java.io.File;
 import java.io.IOException;
 
 import android.media.MediaRecorder;
 
-public class SoundMeter {
+public class Recorder {
 	private MediaRecorder mRecorder;
 	private String OUTPUT_FILE;
 	
-	public SoundMeter(String output_file) {
+	public Recorder(String output_file) {
 		mRecorder = null;
 		this.OUTPUT_FILE = output_file;
 	}
 	
 	public void start() throws IllegalStateException, IOException {
 		if (mRecorder == null) {
+			createRecordFile();
 		    mRecorder = new MediaRecorder();
 		    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 			mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
@@ -39,6 +41,12 @@ public class SoundMeter {
             return  (mRecorder.getMaxAmplitude());
         else
             return 0;
-
+    }
+    
+    private void createRecordFile() throws IOException {
+    	File record = new File(OUTPUT_FILE);
+    	if(!record.exists()) {
+			record.createNewFile();
+    	}
     }
 }
