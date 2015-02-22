@@ -2,18 +2,22 @@
 <resources>
 
     <string name="app_name">SleepMonitor</string>
-    <string name="startedRecording">Started Recording</string><string name="action_settings">Settings</string>
+    <string name="startedRecording">Started Recording</string>
+    <string name="action_settings">Settings</string>
     <string name="startRecording">Start Recording</string>
     <string name="stopRecording">Stop Recording</string>
     <string name="playRecord">Play Record</string>
     <string name="stopPlayback">Stop Playback</string>
     <string name="sleepMonitoring">Sleep Monitoring</string>
-    
-    <string name="stoppedRecording">Stopped Recording</string>
+    <string name="stoppedRecording">Saved Record.\nYou can find it under \&quot;My Records\&quot;</string>
     <string name="couldNotCreateRecordFile">Could not create Record File</string>
     <string name="app_directory">/sleepmonitoring</string>
     <string name="record_directory">/records</string>
     <string name="record_file_ending">.3gpp</string>
     <string name="myRecords">My Records</string>
+    <string name="title_activity_record_details">RecordDetails</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="emptyString"></string>
+    <string name="showLineChart">Show Line Chart</string>
 
 </resources>

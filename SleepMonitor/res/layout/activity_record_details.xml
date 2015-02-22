@@ -1,0 +1,34 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/LinearLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="de.htwg_konstanz.chhauss.sleepmonitor.RecordDetails" >
+
+    <TextView
+        android:id="@+id/recordNameTV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/emptyString"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <Button
+        android:id="@+id/playRecordBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onButtonClicked"
+        android:text="@string/playRecord" />
+
+    <Button
+        android:id="@+id/showLineChartBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onButtonClicked"
+        android:text="@string/showLineChart" />
+
+</LinearLayout>

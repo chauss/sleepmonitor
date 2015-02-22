@@ -7,8 +7,9 @@
     <uses-sdk
         android:minSdkVersion="15"
         android:targetSdkVersion="21" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -24,8 +25,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="SleepMonitoring"></activity>
-        <activity android:name="MyRecords"></activity>
+        <activity android:name=".SleepMonitoring" >
+        </activity>
+        <activity android:name=".MyRecords" >
+        </activity>
+        <activity android:name="org.achartengine.GraphicalActivity" />
+        <activity
+            android:name=".RecordDetails"
+            android:label="@string/title_activity_record_details" >
+        </activity>
     </application>
 
 </manifest>

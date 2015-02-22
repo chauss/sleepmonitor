@@ -22,32 +22,34 @@ public class DatabaseAdapter {
 	private SimpleDateFormat dateFormatter;
 	
 	public DatabaseAdapter(Context context) {
-	    String app_dir = Environment.getExternalStoragePublicDirectory(null) + context.getString(R.string.app_directory);
+	    String app_dir = Environment.getExternalStorageDirectory() +
+	    		         context.getString(R.string.app_directory);
 		dbHelper = new DatabaseHelper(context, app_dir);
 		dateFormatter = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.getDefault());
 	}
 	
-	public long insertVolume(String dateAndTime, int volume) {
+	public long insertVolume(String dateAndTime, int volume, String recordID) {
 		if(db == null || !db.isOpen()){
 			db = dbHelper.getWritableDatabase();
 		}
 		ContentValues cv = new ContentValues();
 		cv.put(DatabaseHelper.DATEANDTIME, dateAndTime);
 		cv.put(DatabaseHelper.VOLUME, volume);
+		cv.put(DatabaseHelper.RECORD_ID, recordID);
 		long id = db.insert(DatabaseHelper.TABLE_NAME, null, cv);
 		
 		return id;
 	}
 	
-	public HashMap<Date, Integer> selectAllByDate(String date) {
+	public HashMap<Date, Integer> selectAllByRecordID(String recordID) {
 		if(db == null || !db.isOpen()){
 			db = dbHelper.getWritableDatabase();
 		}
-		String[] columns = {DatabaseHelper.DATEANDTIME, DatabaseHelper.VOLUME};
+		String[] columns = {DatabaseHelper.DATEANDTIME, DatabaseHelper.VOLUME, DatabaseHelper.RECORD_ID};
 		
 		Cursor cursor = db.query(DatabaseHelper.TABLE_NAME,
 								 columns,
-								 DatabaseHelper.DATEANDTIME + " LIKE '" + date + "_%'",
+								 DatabaseHelper.RECORD_ID + " = '" + recordID + "'",
 							 	 null, null, null, null);
 		
 		if(cursor.getColumnCount() == 0) {
@@ -88,6 +90,7 @@ public class DatabaseAdapter {
 		private static final String UID = "_id";
 		private static final String DATEANDTIME = "DateAndTime";
 		private static final String VOLUME = "Volume";
+		private static final String RECORD_ID = "RecordID";
 		
 		
 		public DatabaseHelper(Context context, String app_dir) {
@@ -100,7 +103,8 @@ public class DatabaseAdapter {
 				db.execSQL("CREATE TABLE " + TABLE_NAME +
 						   "(" + UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 						   DATEANDTIME + " VARCHAR(20)," +
-						   VOLUME + " INTEGER);");
+						   VOLUME + " INTEGER," +
+						   RECORD_ID + " VARCHAR(20));");
 			} catch(SQLException e) {
 				e.printStackTrace();
 			}
