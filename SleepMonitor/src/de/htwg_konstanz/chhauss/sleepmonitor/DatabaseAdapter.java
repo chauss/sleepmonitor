@@ -1,20 +1,30 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Environment;
 
 public class DatabaseAdapter {
 
-	private static final int databaseCloseTimeout = 10;
+    private static final String DATE_TIME_FORMAT = "dd_MM_yyyy_HH_mm_ss";
 	private DatabaseHelper dbHelper;
 	private SQLiteDatabase db;
+	private SimpleDateFormat dateFormatter;
 	
 	public DatabaseAdapter(Context context) {
-		dbHelper = new DatabaseHelper(context);
+	    String app_dir = Environment.getExternalStoragePublicDirectory(null) + context.getString(R.string.app_directory);
+		dbHelper = new DatabaseHelper(context, app_dir);
+		dateFormatter = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.getDefault());
 	}
 	
 	public long insertVolume(String dateAndTime, int volume) {
@@ -29,7 +39,7 @@ public class DatabaseAdapter {
 		return id;
 	}
 	
-	public void selectAllByDate(String date) {
+	public HashMap<Date, Integer> selectAllByDate(String date) {
 		if(db == null || !db.isOpen()){
 			db = dbHelper.getWritableDatabase();
 		}
@@ -39,30 +49,49 @@ public class DatabaseAdapter {
 								 columns,
 								 DatabaseHelper.DATEANDTIME + " LIKE '" + date + "_%'",
 							 	 null, null, null, null);
+		
+		if(cursor.getColumnCount() == 0) {
+		    return null;
+		}
+		
 		int dateTimeColumnIdx = cursor.getColumnIndex(DatabaseHelper.DATEANDTIME);
 		int volumeColumnIdx = cursor.getColumnIndex(DatabaseHelper.VOLUME);
 		String dateAndTime;
 		int volume;
+		HashMap<Date, Integer> result = new HashMap<Date, Integer>();
+		
 		while(cursor.moveToNext()) {
 			dateAndTime = cursor.getString(dateTimeColumnIdx);
 			volume = cursor.getInt(volumeColumnIdx);
 			
-			System.out.printf("Um %s war die Lautstärke: %d\n", dateAndTime, volume);
+			try {
+                result.put(dateFormatter.parse(dateAndTime), volume);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
 		}
 		db.close();
+		return result;
+	}
+	
+	public void closeDatabase() {
+	    if(db != null && db.isOpen()) {
+	        db.close();
+	    }
 	}
 	
 	static class DatabaseHelper extends SQLiteOpenHelper{
 		private static final String DB_NAME = "sleepmonitor.db";
-		private static final int DB_VERSION = 5;
+		private static final int DB_VERSION = 1;
 		
 		private static final String TABLE_NAME = "SLEEPVOLUME";
 		private static final String UID = "_id";
 		private static final String DATEANDTIME = "DateAndTime";
 		private static final String VOLUME = "Volume";
 		
-		public DatabaseHelper(Context context) {
-			super(context, DB_NAME, null, DB_VERSION);
+		
+		public DatabaseHelper(Context context, String app_dir) {
+			super(context, app_dir + "/" + DB_NAME, null, DB_VERSION);
 		}
 
 		@Override

@@ -11,12 +11,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class SleepMonitoring extends Activity{
 
 	private static final String RECORD_BASE_NAME = "/sleepRecord_";
-	
 	private static final String DATE_TIME_FORMAT = "dd_MM_yyyy_HH_mm_ss";
 	
 	private boolean recording;
@@ -27,6 +27,8 @@ public class SleepMonitoring extends Activity{
 	private VolumeScanner volumeScanner;
 	private static final int minSleepTime = 1000;
 	private static final int maxSleepTime = 6000;
+	
+	private DatabaseAdapter dba;
 	
 	
 	@Override
@@ -45,6 +47,7 @@ public class SleepMonitoring extends Activity{
     					   RECORD_BASE_NAME +
     					   dateFormatter.format(date) +
     					   getString(R.string.record_file_ending));
+    	dba = new DatabaseAdapter(this);
     }
 	
 	public void onRecordButtonClicked(View v)  {
@@ -78,7 +81,7 @@ public class SleepMonitoring extends Activity{
 		
 		Toast.makeText(this, R.string.startedRecording, Toast.LENGTH_SHORT).show();
 		
-		volumeScanner = new VolumeScanner(this);
+		volumeScanner = new VolumeScanner();
 		volumeScanner.start();
 	}
     
@@ -86,24 +89,21 @@ public class SleepMonitoring extends Activity{
 		volumeScanner.stopScanning();
 		volumeScanner = null;
 		rec.stop();
+		dba.closeDatabase();
 		
 		recording = false;
 		recordBtn.setText(R.string.startRecording);
 		
 		Toast.makeText(this, R.string.stoppedRecording, Toast.LENGTH_SHORT).show();
 		
-		DatabaseAdapter db = new DatabaseAdapter(this);
-		db.selectAllByDate("21_02_2015");
 	}
-    
+	
 	class VolumeScanner extends Thread {
 		
 		private int sleepTime = 1000;
-		private DatabaseAdapter dba;
 		private boolean done;
 		
-		private VolumeScanner(Context context) {
-			dba = new DatabaseAdapter(context);
+		private VolumeScanner() {
 			done = false;
 		}
 
