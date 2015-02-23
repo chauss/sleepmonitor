@@ -34,6 +34,7 @@
             android:name=".RecordDetails"
             android:label="@string/title_activity_record_details" >
         </activity>
+        <service android:name="RecordingService"></service>
     </application>
 
 </manifest>

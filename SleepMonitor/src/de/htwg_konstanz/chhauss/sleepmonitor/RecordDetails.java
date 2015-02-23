@@ -9,13 +9,12 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
-import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class RecordDetails extends Activity implements OnPreparedListener {
+public class RecordDetails extends Activity {
 
 	private MediaPlayer mediaPlayer;
 	private Button playRecordBtn;
@@ -118,11 +117,5 @@ public class RecordDetails extends Activity implements OnPreparedListener {
 		LineChart lineChart = new LineChart(result);
 		Intent lineIntent = lineChart.getIntent(this);
 		startActivity(lineIntent);
-	}
-
-	@Override
-	public void onPrepared(MediaPlayer mp) {
-		// TODO Auto-generated method stub
-		
 	}
 }
