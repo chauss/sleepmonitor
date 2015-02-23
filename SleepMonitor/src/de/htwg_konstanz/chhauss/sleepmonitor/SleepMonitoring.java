@@ -2,6 +2,9 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -32,6 +35,10 @@ public class SleepMonitoring extends Activity{
     	recOpts = (Spinner) findViewById(R.id.recordOptsSpinner);
     	
     	prepareRecordOptionsSpinner();
+    	
+    	if(serviceIsRunning(RecordingService.class)) {
+    		activateRecordingState();
+    	}
     }
 
 	private void prepareRecordOptionsSpinner() {
@@ -72,17 +79,33 @@ public class SleepMonitoring extends Activity{
 			starter.putExtra("recordToRecordFiles", recordToRecordFiles);
 			startService(starter);
 			
-			// Set Sleepmonitoring Views to state "Recording"
-			recording = true;
-			recordBtn.setText(R.string.stopRecording);
+			activateRecordingState();
 			Toast.makeText(this, R.string.startedRecording, Toast.LENGTH_SHORT).show();
 		} else {
 			stopService(new Intent(this, RecordingService.class));
 
-			// Set Sleepmonitoring Views to state "Not Recording"
-			recording = false;
-			recordBtn.setText(R.string.startRecording);
+			deactivateRecordingState();
 			Toast.makeText(this, R.string.stoppedRecording, Toast.LENGTH_SHORT).show();
 		}
     }
+
+	private void activateRecordingState() {
+		recording = true;
+		recordBtn.setText(R.string.stopRecording);
+	}
+	
+	private void deactivateRecordingState() {
+		recording = false;
+		recordBtn.setText(R.string.startRecording);
+	}
+	
+	private boolean serviceIsRunning(Class<?> serviceClass) {
+	  ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+	  for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+	    if (serviceClass.getName().equals(service.service.getClassName())) {
+	        return true;
+	    }
+	  }
+	  return false;
+	}
 }
