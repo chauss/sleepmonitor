@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,11 +10,30 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="de.htwg_konstanz.chhauss.sleepmonitor.SleepMonitoring" >
 
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/whatToRecord"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <Spinner
+        android:id="@+id/recordOptsSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:entries="@array/recordingOptions" />
+
     <Button
         android:id="@+id/recordBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="fill_horizontal"
         android:onClick="onRecordButtonClicked"
         android:text="@string/startRecording" />
+
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="fill_vertical" />
 
 </LinearLayout>

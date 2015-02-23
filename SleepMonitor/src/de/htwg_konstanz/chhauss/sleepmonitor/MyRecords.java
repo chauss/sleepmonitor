@@ -95,6 +95,7 @@ public class MyRecords extends ListActivity{
 		    }
 		};
 		File[] files = (File[]) RECORD_DIR.listFiles(recordFilter);
+
 		return files;
 	}
 	

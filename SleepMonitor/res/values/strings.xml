@@ -22,8 +22,15 @@
     <string name="noRecordFileFound">No Record Found</string>
     <string name="noVolumeDataFound">No Volume Data found</string>
     <string name="resetDatabase">Reset Database</string>
-    <string name="deleteAllRecords">Delete All Records</string>
+    <string name="deleteAllRecords">Delete All Record Files</string>
     <string name="succRemovedAllRecordFiles">Successfully Removed %d Record File(s)</string>
     <string name="resetedDatabase">Database Has Been Reseted</string>
+    
+    <string-array name="recordingOptions">
+        <item>Only Volume Data</item>
+        <item>Only Record File</item>
+        <item>Volume Data and Record File</item>
+    </string-array>
+        <string name="whatToRecord">What shall be recorded:</string>
 
 </resources>

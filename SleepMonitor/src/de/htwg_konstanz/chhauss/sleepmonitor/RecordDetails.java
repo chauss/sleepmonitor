@@ -9,12 +9,13 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class RecordDetails extends Activity {
+public class RecordDetails extends Activity implements OnPreparedListener {
 
 	private MediaPlayer mediaPlayer;
 	private Button playRecordBtn;
@@ -58,7 +59,7 @@ public class RecordDetails extends Activity {
 		case R.id.playRecordBtn:
 			if(!playing) {
 				try {
-					playRecord(record.getPath());
+					playRecord();
 				} catch (IllegalStateException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -74,7 +75,7 @@ public class RecordDetails extends Activity {
 		}
 	}
 
-	private void playRecord(String record_path) throws IllegalStateException, IOException {
+	private void playRecord() throws IllegalStateException, IOException {
 		mediaPlayer = new MediaPlayer();
 		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
@@ -83,9 +84,9 @@ public class RecordDetails extends Activity {
 				stopPlayback();
 			}
 		});
-		
-		mediaPlayer.setDataSource(record_path);
+		mediaPlayer.setDataSource(record.getPath());
 		mediaPlayer.prepare();
+		
 		mediaPlayer.start();
 		
 		playing = true;
@@ -105,7 +106,9 @@ public class RecordDetails extends Activity {
 		
 		playing = false;
 		playRecordBtn.setText(R.string.playRecord);
-		showLineChartBtn.setEnabled(true);
+		if(record.getID() != null) {
+			showLineChartBtn.setEnabled(true);
+		}
 	}
 	
 	private void showLineChartForRecord() {
@@ -115,5 +118,11 @@ public class RecordDetails extends Activity {
 		LineChart lineChart = new LineChart(result);
 		Intent lineIntent = lineChart.getIntent(this);
 		startActivity(lineIntent);
+	}
+
+	@Override
+	public void onPrepared(MediaPlayer mp) {
+		// TODO Auto-generated method stub
+		
 	}
 }

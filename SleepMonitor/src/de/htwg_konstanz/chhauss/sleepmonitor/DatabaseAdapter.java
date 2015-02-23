@@ -13,7 +13,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Environment;
 
 public class DatabaseAdapter {
 
@@ -23,9 +22,7 @@ public class DatabaseAdapter {
 	private SimpleDateFormat dateFormatter;
 	
 	public DatabaseAdapter(Context context) {
-	    String app_dir = Environment.getExternalStorageDirectory() +
-	    		         context.getString(R.string.app_directory);
-		dbHelper = new DatabaseHelper(context, app_dir);
+	    dbHelper = new DatabaseHelper(context);
 		dateFormatter = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.getDefault());
 	}
 	
@@ -128,8 +125,8 @@ public class DatabaseAdapter {
 		private static final String RECORD_ID = "RecordID";
 		
 		
-		public DatabaseHelper(Context context, String app_dir) {
-			super(context, app_dir + "/" + DB_NAME, null, DB_VERSION);
+		public DatabaseHelper(Context context) {
+			super(context, DB_NAME, null, DB_VERSION);
 		}
 
 		@Override

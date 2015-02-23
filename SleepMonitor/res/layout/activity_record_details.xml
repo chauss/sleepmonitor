@@ -31,4 +31,10 @@
         android:onClick="onButtonClicked"
         android:text="@string/showLineChart" />
 
+    <MediaController
+        android:id="@+id/recordMediaController"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+    </MediaController>
+
 </LinearLayout>
