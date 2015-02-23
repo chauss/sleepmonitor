@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.widget.Toast;
 
 
 public class MainActivity extends Activity {
@@ -21,7 +22,6 @@ public class MainActivity extends Activity {
 
 	private void createAppDirectory() {
 		String extStorageDir = Environment.getExternalStorageDirectory().getAbsolutePath();
-		System.out.println(extStorageDir);
 		File app_dir = new File(extStorageDir + getString(R.string.app_directory));
         if(!app_dir.exists()) {
         	app_dir.mkdir();
@@ -43,6 +43,31 @@ public class MainActivity extends Activity {
     	case R.id.toMyRecordsBtn:
     		startActivity(new Intent(this, MyRecords.class));
     		break;
+    	case R.id.resetDatabaseBtn:
+    		resetDataBase();
+    		break;
+    	case R.id.deleteAllRecordsBtn:
+    		deleteAllRecords();
+    		break;
     	}
     }
+
+    private void resetDataBase() {
+		DatabaseAdapter dba = new DatabaseAdapter(this);
+		dba.resetDatabase();
+		Toast.makeText(this, R.string.resetedDatabase, Toast.LENGTH_SHORT).show();
+	}
+    
+	private void deleteAllRecords() {
+		File RECORD_DIR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
+								   getString(R.string.app_directory) +
+								   getString(R.string.record_directory));
+		File[] files = RECORD_DIR.listFiles();
+		for(File file : files) {
+			file.delete();
+		}
+		Toast.makeText(this,
+				       String.format(getString(R.string.succRemovedAllRecordFiles), files.length),
+				       Toast.LENGTH_SHORT).show();
+	}
 }

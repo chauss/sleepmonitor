@@ -33,6 +33,7 @@ public class SleepMonitoring extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sleepmonitoring);
+        setTitle(R.string.sleepMonitoring);
         
     	recording = false;
     	recordBtn = (Button) findViewById(R.id.recordBtn);
@@ -74,7 +75,6 @@ public class SleepMonitoring extends Activity{
     	} catch (IOException e) {
     		Toast.makeText(this, R.string.couldNotCreateRecordFile, Toast.LENGTH_LONG).show();
     		e.printStackTrace();
-    		System.out.println(e.getMessage());
     		return;
     	}
     	
@@ -120,7 +120,6 @@ public class SleepMonitoring extends Activity{
 				volume = (int) rec.getAmplitude();
 				
 				dba.insertVolume(dateFormatter.format(date), volume, recordID);
-				System.out.println("Die Lautstärke ist: " + volume);
 				try {
 					sleep(sleepTime);
 				} catch (InterruptedException e) {

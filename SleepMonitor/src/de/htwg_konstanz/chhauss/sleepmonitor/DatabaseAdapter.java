@@ -2,6 +2,7 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -42,11 +43,9 @@ public class DatabaseAdapter {
 	}
 	
 	public HashMap<Date, Integer> selectAllByRecordID(String recordID) {
-		if(db == null || !db.isOpen()){
-			db = dbHelper.getWritableDatabase();
-		}
-		String[] columns = {DatabaseHelper.DATEANDTIME, DatabaseHelper.VOLUME, DatabaseHelper.RECORD_ID};
+		openDatabase();
 		
+		String[] columns = {DatabaseHelper.DATEANDTIME, DatabaseHelper.VOLUME, DatabaseHelper.RECORD_ID};
 		Cursor cursor = db.query(DatabaseHelper.TABLE_NAME,
 								 columns,
 								 DatabaseHelper.RECORD_ID + " = '" + recordID + "'",
@@ -72,14 +71,50 @@ public class DatabaseAdapter {
                 e.printStackTrace();
             }
 		}
-		db.close();
+		closeDatabase();
+		
 		return result;
+	}
+	
+	public ArrayList<String> selectAllRecordIDs() {
+		openDatabase();
+		
+		String[] columns = {DatabaseHelper.RECORD_ID};
+		Cursor cursor = db.query(true, DatabaseHelper.TABLE_NAME,
+								 columns,
+								 null, null, null, null, null, null);
+		if(cursor.getColumnCount() == 0) {
+		    return null;
+		}
+		
+		int recordIDColumIdx = cursor.getColumnIndex(DatabaseHelper.RECORD_ID);
+		String recordID;
+		ArrayList<String> result = new ArrayList<String>();
+		
+		while(cursor.moveToNext()) {
+			recordID = cursor.getString(recordIDColumIdx);
+			result.add(recordID);
+		}
+		closeDatabase();
+		
+		return result;
+	}
+	
+	private void openDatabase() {
+		if(db == null || !db.isOpen()){
+			db = dbHelper.getWritableDatabase();
+		}
 	}
 	
 	public void closeDatabase() {
 	    if(db != null && db.isOpen()) {
 	        db.close();
 	    }
+	}
+	
+	public void resetDatabase() {
+		openDatabase();
+		db.delete(DatabaseHelper.TABLE_NAME, null, null);
 	}
 	
 	static class DatabaseHelper extends SQLiteOpenHelper{

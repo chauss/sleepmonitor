@@ -19,8 +19,7 @@ public class RecordDetails extends Activity {
 	private MediaPlayer mediaPlayer;
 	private Button playRecordBtn;
 	private Button showLineChartBtn;
-	private String recordPath;
-	private String recordID;
+	private Record record;
 	
 	private boolean playing = false;
 
@@ -30,14 +29,22 @@ public class RecordDetails extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_record_details);
 		
-		recordPath = getIntent().getStringExtra("recordPath");
-		recordID = getIntent().getStringExtra("recordID");
+		record = getIntent().getParcelableExtra("record");
 		
 		TextView recordTV = (TextView) findViewById(R.id.recordNameTV);
-		recordTV.setText("Record: " + recordID);
+		recordTV.setText("Record: " + record.getName());
 		
 		playRecordBtn = (Button) findViewById(R.id.playRecordBtn);
 		showLineChartBtn = (Button) findViewById(R.id.showLineChartBtn);
+		
+		if(record.getPath() == null) {
+			playRecordBtn.setEnabled(false);
+			playRecordBtn.setText(R.string.noRecordFileFound);
+		}
+		if(record.getID() == null) {
+			showLineChartBtn.setEnabled(false);
+			showLineChartBtn.setText(R.string.noVolumeDataFound);
+		}
 	}
 	
 	@Override
@@ -51,7 +58,7 @@ public class RecordDetails extends Activity {
 		case R.id.playRecordBtn:
 			if(!playing) {
 				try {
-					playRecord(recordPath);
+					playRecord(record.getPath());
 				} catch (IllegalStateException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -103,8 +110,7 @@ public class RecordDetails extends Activity {
 	
 	private void showLineChartForRecord() {
 		DatabaseAdapter dba = new DatabaseAdapter(getApplicationContext());
-		System.out.println("1");
-		HashMap<Date, Integer> result = dba.selectAllByRecordID(recordID);
+		HashMap<Date, Integer> result = dba.selectAllByRecordID(record.getID());
 		
 		LineChart lineChart = new LineChart(result);
 		Intent lineIntent = lineChart.getIntent(this);

@@ -19,5 +19,11 @@
     <string name="hello_world">Hello world!</string>
     <string name="emptyString"></string>
     <string name="showLineChart">Show Line Chart</string>
+    <string name="noRecordFileFound">No Record Found</string>
+    <string name="noVolumeDataFound">No Volume Data found</string>
+    <string name="resetDatabase">Reset Database</string>
+    <string name="deleteAllRecords">Delete All Records</string>
+    <string name="succRemovedAllRecordFiles">Successfully Removed %d Record File(s)</string>
+    <string name="resetedDatabase">Database Has Been Reseted</string>
 
 </resources>

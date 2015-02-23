@@ -2,6 +2,8 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.ArrayList;
+
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,14 +16,15 @@ import android.widget.ArrayAdapter;
 
 public class MyRecords extends ListActivity{
 	
-	private File MEDIA_DIR;
+	private File RECORD_DIR;
 	
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(R.string.myRecords);
         
-        MEDIA_DIR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
+        RECORD_DIR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
         			  	 	 getString(R.string.app_directory) +
         			  	 	 getString(R.string.record_directory));
         
@@ -29,10 +32,9 @@ public class MyRecords extends ListActivity{
         	
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-				File record = (File) parent.getItemAtPosition(position);
+				Record record = (Record) parent.getItemAtPosition(position);
 				Intent intent = new Intent(parent.getContext(), RecordDetails.class);
-				intent.putExtra("recordPath", record.getAbsolutePath());
-				intent.putExtra("recordID", removeFileExtension(record.getName()));
+				intent.putExtra("record", record);
 				startActivity(intent);
 			}
 		});
@@ -49,20 +51,51 @@ public class MyRecords extends ListActivity{
 	}
 	
 	private Record[] getAllRecords() {
+		File[] files = getAllRecordFiles();
+		
+		// Get all record data from the database
+		DatabaseAdapter dba = new DatabaseAdapter(this);
+		ArrayList<String> recordIDs = dba.selectAllRecordIDs();
+		
+		ArrayList<Record> records = mergeFilesAndVolumeData(files, recordIDs);
+		
+		return records.toArray(new Record[records.size()]);
+	}
+
+	private ArrayList<Record> mergeFilesAndVolumeData(File[] files, ArrayList<String> recordIDs) {
+		// Put all file, volumeData(here optional) pairs in a list (as Record-Objects)
+		ArrayList<Record> records = new ArrayList<Record>();
+		String recordID;
+		String name;
+		
+		for(int i = 0; i < files.length; i++) {
+			name = recordID = removeFileExtension(files[i].getName());
+			if(recordIDs.contains(recordID)) {
+				recordIDs.remove(recordID);
+			} else {
+				recordID = null;
+			}
+			records.add(new Record(files[i].getAbsolutePath(), recordID, name));
+		}
+		
+		// Add all remaining volumeDatas with no record file to the list
+		for(int i = 0; i < recordIDs.size(); i++) {
+			name = recordID = recordIDs.get(i);
+			records.add(new Record(null, recordID, name));
+		}
+		return records;
+	}
+
+	private File[] getAllRecordFiles() {
 		FileFilter recordFilter = new FileFilter() {
 		    @Override
 		    public boolean accept(File file) {
+		    	// Filter to match only files with the record-file ending
 		        return file.getAbsolutePath().matches(".*\\" + getString(R.string.record_file_ending));
 		    }
 		};
-		
-		File[] files = (File[]) MEDIA_DIR.listFiles(recordFilter);
-		Record[] records = new Record[files.length];
-		for (int i = 0; i < files.length; i++) {
-			records[i] = new Record(files[i].getAbsolutePath());
-		}
-		
-		return records;
+		File[] files = (File[]) RECORD_DIR.listFiles(recordFilter);
+		return files;
 	}
 	
 	private String removeFileExtension(String filename) {
