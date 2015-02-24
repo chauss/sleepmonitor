@@ -20,7 +20,7 @@ public class RecordDetails extends Activity {
 	
 	private static final int BYTES_TO_KILOBYTES = 1024;
 	private static final int MILISEC_TO_SEC = 1000;
-	private static final String KILEBYTE_ENDING = " KB";
+	private static final String KILOBYTE_ENDING = " KB";
 	private static final String SECONDS_ENDING = " s";
 
 	private MediaPlayer mediaPlayer;
@@ -66,13 +66,17 @@ public class RecordDetails extends Activity {
 		if(record.getPath() != null) {
 			File file = new File(record.getPath());
 			double size = (double) file.length() / BYTES_TO_KILOBYTES;
-			MediaPlayer tempPlayer = MediaPlayer.create(this, Uri.parse(record.getPath()));
-			double duration = (double) tempPlayer.getDuration() / MILISEC_TO_SEC;
-			tempPlayer.release();
+			
+			// Get Duration of the audiofile
+			mediaPlayer = MediaPlayer.create(this, Uri.parse(record.getPath()));
+			double duration = (double) mediaPlayer.getDuration() / MILISEC_TO_SEC;
+			mediaPlayer.reset();
+			mediaPlayer.release();
+			mediaPlayer = null;
 			
 			TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
 			sizeTV.setText(getString(R.string.recordFileSize)
-					       .replace("%SIZE", String.format("%.2f", size) + KILEBYTE_ENDING));
+					       .replace("%SIZE", String.format("%.2f", size) + KILOBYTE_ENDING));
 			
 			TextView durationTV = (TextView) findViewById(R.id.recordFileDurationTV);
 			durationTV.setText(getString(R.string.recrodFileDuration)

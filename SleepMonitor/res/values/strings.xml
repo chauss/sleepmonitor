@@ -13,7 +13,7 @@
     <string name="couldNotCreateRecordFile">Could not create Record File</string>
     <string name="app_directory">/sleepmonitoring</string>
     <string name="record_directory">/records</string>
-    <string name="record_file_ending">.3gpp</string>
+    <string name="record_file_ending">.mp3</string>
     <string name="myRecords">My Records</string>
     <string name="title_activity_record_details">RecordDetails</string>
     <string name="emptyString"></string>
