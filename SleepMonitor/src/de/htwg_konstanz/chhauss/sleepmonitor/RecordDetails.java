@@ -72,11 +72,11 @@ public class RecordDetails extends Activity {
 			
 			TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
 			sizeTV.setText(getString(R.string.recordFileSize)
-					       .replace("%SIZE", size + KILEBYTE_ENDING));
+					       .replace("%SIZE", String.format("%.2f", size) + KILEBYTE_ENDING));
 			
 			TextView durationTV = (TextView) findViewById(R.id.recordFileDurationTV);
 			durationTV.setText(getString(R.string.recrodFileDuration)
-							   .replace("%DURATION", duration + SECONDS_ENDING));
+							   .replace("%DURATION", String.format("%.2f", duration) + SECONDS_ENDING));
 		} else {
 			TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
 			sizeTV.setText(getString(R.string.recordFileSize)
