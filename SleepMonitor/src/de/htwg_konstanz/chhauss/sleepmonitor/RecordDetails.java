@@ -1,5 +1,6 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -9,12 +10,18 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 public class RecordDetails extends Activity {
+	
+	private static final int BYTES_TO_KILOBYTES = 1024;
+	private static final int MILISEC_TO_SEC = 1000;
+	private static final String KILEBYTE_ENDING = " KB";
+	private static final String SECONDS_ENDING = " s";
 
 	private MediaPlayer mediaPlayer;
 	private Button playRecordBtn;
@@ -45,12 +52,40 @@ public class RecordDetails extends Activity {
 			showLineChartBtn.setEnabled(false);
 			showLineChartBtn.setText(R.string.noVolumeDataFound);
 		}
+		
+		setRecordFileData();
 	}
 	
 	@Override
 	protected void onPause() {
 		super.onPause();
 		stopPlayback();
+	}
+	
+	private void setRecordFileData() {
+		if(record.getPath() != null) {
+			File file = new File(record.getPath());
+			double size = (double) file.length() / BYTES_TO_KILOBYTES;
+			MediaPlayer tempPlayer = MediaPlayer.create(this, Uri.parse(record.getPath()));
+			double duration = (double) tempPlayer.getDuration() / MILISEC_TO_SEC;
+			tempPlayer.release();
+			
+			TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
+			sizeTV.setText(getString(R.string.recordFileSize)
+					       .replace("%SIZE", size + KILEBYTE_ENDING));
+			
+			TextView durationTV = (TextView) findViewById(R.id.recordFileDurationTV);
+			durationTV.setText(getString(R.string.recrodFileDuration)
+							   .replace("%DURATION", duration + SECONDS_ENDING));
+		} else {
+			TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
+			sizeTV.setText(getString(R.string.recordFileSize)
+					       .replace("%SIZE", getString(R.string.notAvailable)));
+			
+			TextView durationTV = (TextView) findViewById(R.id.recordFileDurationTV);
+			durationTV.setText(getString(R.string.recrodFileDuration)
+							   .replace("%DURATION", getString(R.string.notAvailable)));
+		}
 	}
 
 	public void onButtonClicked(View v) {

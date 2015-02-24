@@ -16,7 +16,6 @@
     <string name="record_file_ending">.3gpp</string>
     <string name="myRecords">My Records</string>
     <string name="title_activity_record_details">RecordDetails</string>
-    <string name="hello_world">Hello world!</string>
     <string name="emptyString"></string>
     <string name="showLineChart">Show Line Chart</string>
     <string name="noRecordFileFound">No Record Found</string>
@@ -33,5 +32,8 @@
     </string-array>
         <string name="whatToRecord">What shall be recorded:</string>
         <string name="recording">Recording...</string>
+        <string name="recordFileSize">Size: %SIZE</string>
+        <string name="recrodFileDuration">Duration: %DURATION</string>
+        <string name="notAvailable">Not Available</string>
 
 </resources>

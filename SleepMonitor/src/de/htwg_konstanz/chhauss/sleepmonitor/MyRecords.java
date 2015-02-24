@@ -47,7 +47,9 @@ public class MyRecords extends ListActivity{
 		
 		Record[] records = getAllRecords();
 		
-		ArrayAdapter<Record> adapter = new ArrayAdapter<Record>(this, android.R.layout.simple_list_item_1, records);
+		ArrayAdapter<Record> adapter = new ArrayAdapter<Record>(this,
+																android.R.layout.simple_list_item_1,
+																records);
 		adapter.sort(new Comparator<Record>() {
 
 			@Override
