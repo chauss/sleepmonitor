@@ -17,6 +17,11 @@ import android.graphics.Color;
 
 public class LineChart {
 
+	private static final int LABEL_SIZE = 30;
+	private static final int AXIS_TITLE_SIZE = 60;
+	private static final String X_AXIS_TITLE = "Time";
+	private static final String Y_AXIS_TITLE = "Volume";
+	
 	private HashMap<Date, Integer> data;
 	
 	public LineChart(HashMap<Date, Integer> data) {
@@ -39,6 +44,12 @@ public class LineChart {
 		renderer.setPointStyle(PointStyle.SQUARE);
 		renderer.setFillPoints(true);
 		mRenderer.addSeriesRenderer(renderer);
+		mRenderer.setShowLegend(false);
+		mRenderer.setLabelsTextSize(LABEL_SIZE);
+		mRenderer.setXTitle(X_AXIS_TITLE);
+		mRenderer.setYTitle(Y_AXIS_TITLE);
+		mRenderer.setAxisTitleTextSize(AXIS_TITLE_SIZE);
+		mRenderer.setMargins(new int[] {0, 2 * AXIS_TITLE_SIZE, AXIS_TITLE_SIZE, 0});
 		
 		Intent intent = ChartFactory.getTimeChartIntent(context, dataset, mRenderer, "Test Title");
 		
