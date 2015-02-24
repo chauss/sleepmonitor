@@ -35,11 +35,17 @@ public class SleepMonitoring extends Activity{
     	recOpts = (Spinner) findViewById(R.id.recordOptsSpinner);
     	
     	prepareRecordOptionsSpinner();
-    	
-    	if(serviceIsRunning(RecordingService.class)) {
-    		activateRecordingState();
-    	}
     }
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if(serviceIsRunning(RecordingService.class)) {
+    		activateRecordingState();
+    	} else {
+    		deactivateRecordingState();
+    	}
+	}
 
 	private void prepareRecordOptionsSpinner() {
 		recOpts.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -63,9 +69,7 @@ public class SleepMonitoring extends Activity{
 			}
 
 			@Override
-			public void onNothingSelected(AdapterView<?> parent) {
-				System.out.println("called on nothing selected");
-			}
+			public void onNothingSelected(AdapterView<?> parent) {}
     		
     	});
     	recOpts.setSelection(2);
@@ -73,10 +77,10 @@ public class SleepMonitoring extends Activity{
 	
 	public void onRecordButtonClicked(View v)  {
 		if(!recording){
-			// Start Service
 			Intent starter = new Intent(this, RecordingService.class);
 			starter.putExtra("recordVolumeData", recordVolumeData);
 			starter.putExtra("recordToRecordFiles", recordToRecordFiles);
+			starter.setAction(RecordingService.START_RECORDING_ACTION);
 			startService(starter);
 			
 			activateRecordingState();

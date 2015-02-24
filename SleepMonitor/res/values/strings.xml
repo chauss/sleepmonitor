@@ -32,5 +32,6 @@
         <item>Volume Data and Record File</item>
     </string-array>
         <string name="whatToRecord">What shall be recorded:</string>
+        <string name="recording">Recording...</string>
 
 </resources>

@@ -3,6 +3,7 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -47,6 +48,14 @@ public class MyRecords extends ListActivity{
 		Record[] records = getAllRecords();
 		
 		ArrayAdapter<Record> adapter = new ArrayAdapter<Record>(this, android.R.layout.simple_list_item_1, records);
+		adapter.sort(new Comparator<Record>() {
+
+			@Override
+			public int compare(Record r1, Record r2) {
+				// This changes the order of the list view: newest on top
+				return r2.toString().compareTo(r1.toString());
+			}
+		});
 		setListAdapter(adapter);
 	}
 	
