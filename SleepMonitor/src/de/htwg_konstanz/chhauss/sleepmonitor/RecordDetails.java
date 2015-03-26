@@ -1,7 +1,6 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -10,10 +9,11 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 public class RecordDetails extends Activity {
@@ -27,6 +27,8 @@ public class RecordDetails extends Activity {
 	private Button playRecordBtn;
 	private Button showLineChartBtn;
 	private Record record;
+	private SeekBar recSeekBar;
+	private SeekBarProgress seekBarProgress;
 	
 	private boolean playing = false;
 
@@ -35,6 +37,7 @@ public class RecordDetails extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_record_details);
+		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
 		record = getIntent().getParcelableExtra("record");
 		
@@ -52,27 +55,72 @@ public class RecordDetails extends Activity {
 			showLineChartBtn.setEnabled(false);
 			showLineChartBtn.setText(R.string.noVolumeDataFound);
 		}
-		
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		try {
+			initMediaPlayer();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		setRecordFileData();
+		initPlaybackControls();
 	}
 	
 	@Override
 	protected void onPause() {
 		super.onPause();
 		stopPlayback();
+		releaseMediaPlayer();
 	}
 	
+	private void initPlaybackControls() {
+		recSeekBar = (SeekBar) findViewById(R.id.playbackSeekBar);
+		recSeekBar.setMax(mediaPlayer.getDuration());
+		recSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				if(mediaPlayer != null && fromUser) {
+					mediaPlayer.seekTo(progress);
+				}
+			}
+		});
+	}
+	
+	private void initMediaPlayer() throws Exception {
+		mediaPlayer = new MediaPlayer();
+		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
+			@Override
+			public void onCompletion(MediaPlayer mp) {
+				stopPlayback();
+			}
+		});
+		mediaPlayer.setDataSource(record.getPath());
+		mediaPlayer.prepareAsync();
+	}
+	
+	private void releaseMediaPlayer() {
+		mediaPlayer.reset();
+		mediaPlayer.release();
+		mediaPlayer = null;
+	}
+
 	private void setRecordFileData() {
 		if(record.getPath() != null) {
 			File file = new File(record.getPath());
 			double size = (double) file.length() / BYTES_TO_KILOBYTES;
 			
-			// Get Duration of the audiofile
-			mediaPlayer = MediaPlayer.create(this, Uri.parse(record.getPath()));
 			double duration = (double) mediaPlayer.getDuration() / MILISEC_TO_SEC;
-			mediaPlayer.reset();
-			mediaPlayer.release();
-			mediaPlayer = null;
 			
 			TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
 			sizeTV.setText(getString(R.string.recordFileSize)
@@ -96,13 +144,7 @@ public class RecordDetails extends Activity {
 		switch(v.getId()) {
 		case R.id.playRecordBtn:
 			if(!playing) {
-				try {
-					playRecord();
-				} catch (IllegalStateException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				playRecord();
 			} else {
 				stopPlayback();
 			}
@@ -113,19 +155,13 @@ public class RecordDetails extends Activity {
 		}
 	}
 
-	private void playRecord() throws IllegalStateException, IOException {
-		mediaPlayer = new MediaPlayer();
-		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-		mediaPlayer.setOnCompletionListener(new OnCompletionListener() {
-			@Override
-			public void onCompletion(MediaPlayer mp) {
-				stopPlayback();
-			}
-		});
-		mediaPlayer.setDataSource(record.getPath());
-		mediaPlayer.prepare();
+	private void playRecord() {
+		if(seekBarProgress == null) {
+			seekBarProgress = new SeekBarProgress();
+		}
 		
 		mediaPlayer.start();
+		seekBarProgress.start();
 		
 		playing = true;
 		playRecordBtn.setText(R.string.stopPlayback);
@@ -133,14 +169,16 @@ public class RecordDetails extends Activity {
 	}
 	
 	private void stopPlayback() {
-		if(mediaPlayer == null) {
+		if(mediaPlayer == null || seekBarProgress == null) {
 			return;
 		}
 		
-		mediaPlayer.stop();
+		mediaPlayer.pause();
+		mediaPlayer.seekTo(0);
 		mediaPlayer.reset();
-		mediaPlayer.release();
-		mediaPlayer = null;
+		seekBarProgress.stopProcessing();
+		seekBarProgress = null;
+		recSeekBar.setProgress(0);
 		
 		playing = false;
 		playRecordBtn.setText(R.string.playRecord);
@@ -148,13 +186,33 @@ public class RecordDetails extends Activity {
 			showLineChartBtn.setEnabled(true);
 		}
 	}
-	
+
 	private void showLineChartForRecord() {
 		DatabaseAdapter dba = new DatabaseAdapter(getApplicationContext());
 		HashMap<Date, Integer> result = dba.selectAllByRecordID(record.getID());
+		System.out.println(result.size());
 		
 		LineChart lineChart = new LineChart(result);
 		Intent lineIntent = lineChart.getIntent(this);
 		startActivity(lineIntent);
+	}
+	
+	class SeekBarProgress extends Thread {
+		
+		private Boolean done = false;
+		
+		@Override
+		public void run() {
+			int mCurrentPosition;
+			
+			while(!done && mediaPlayer != null) {
+				mCurrentPosition = mediaPlayer.getCurrentPosition();
+	            recSeekBar.setProgress(mCurrentPosition);
+			}
+		}
+		
+		public void stopProcessing() {
+			done = true;
+		}
 	}
 }

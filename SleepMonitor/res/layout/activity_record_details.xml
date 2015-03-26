@@ -31,6 +31,13 @@
         android:text="@string/recrodFileDuration"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
+    <SeekBar
+        android:id="@+id/playbackSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="20dp" />
+
     <Button
         android:id="@+id/playRecordBtn"
         android:layout_width="match_parent"

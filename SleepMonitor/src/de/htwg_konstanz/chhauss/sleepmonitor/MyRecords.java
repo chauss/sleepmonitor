@@ -102,7 +102,7 @@ public class MyRecords extends ListActivity{
 		    @Override
 		    public boolean accept(File file) {
 		    	// Filter to match only files with the record-file ending
-		        return file.getAbsolutePath().matches(".*\\" + getString(R.string.record_file_ending));
+		        return file.getName().endsWith(getString(R.string.record_file_ending));
 		    }
 		};
 		File[] files = (File[]) RECORD_DIR.listFiles(recordFilter);
