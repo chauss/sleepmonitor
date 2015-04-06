@@ -8,6 +8,8 @@ import android.media.MediaRecorder;
 public class Recorder {
 	private MediaRecorder mRecorder;
 	private String OUTPUT_FILE;
+	private static double mEMA = 0.0;
+	static final private double EMA_FILTER = 0.6;
 	
 	public Recorder(String output_file) {
 		mRecorder = null;
@@ -41,6 +43,12 @@ public class Recorder {
             return  (mRecorder.getMaxAmplitude());
         else
             return 0;
+    }
+    
+    public double getAmplitudeEMA() {
+        double amp =  getAmplitude();
+        mEMA = EMA_FILTER * amp + (1.0 - EMA_FILTER) * mEMA;
+        return mEMA;
     }
     
     private void createRecordFile() throws IOException {

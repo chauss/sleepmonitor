@@ -20,7 +20,7 @@ public class LineChart {
 	private static final int LABEL_SIZE = 30;
 	private static final int AXIS_TITLE_SIZE = 60;
 	private static final String X_AXIS_TITLE = "Time";
-	private static final String Y_AXIS_TITLE = "Volume";
+	private static final String Y_AXIS_TITLE = "Volume (db)";
 	
 	private HashMap<Date, Integer> data;
 	

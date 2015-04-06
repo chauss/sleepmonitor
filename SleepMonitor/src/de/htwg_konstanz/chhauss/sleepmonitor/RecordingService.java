@@ -178,7 +178,7 @@ public class RecordingService extends Service {
 			
 			while(!done) {
 				date = new Date();
-				volume = (int) rec.getAmplitude();
+				volume = (int) rec.getAmplitudeEMA();
 				
 				dba.insertVolume(dateFormatter.format(date), volume, recordID);
 				try {
