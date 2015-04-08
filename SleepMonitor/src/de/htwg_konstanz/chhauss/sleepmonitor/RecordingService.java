@@ -34,6 +34,7 @@ public class RecordingService extends Service {
 	private String recordID;
 	private Boolean recordVolumeData;
 	private Boolean recordToRecordFile;
+	private double noiseScanInterval;
 	
 	@Override
 	public void onCreate() {
@@ -58,7 +59,9 @@ public class RecordingService extends Service {
 			Bundle extras = intent.getExtras();
 			recordVolumeData = extras.getBoolean("recordVolumeData");
 			recordToRecordFile = extras.getBoolean("recordToRecordFiles");
+			noiseScanInterval = extras.getDouble("noiseScanInterval");
 			
+			Toast.makeText(this, "Interval: " + noiseScanInterval, Toast.LENGTH_SHORT).show();
 			startRecording();
 			startForeground(1, getRecordingNotification());
 			
@@ -160,7 +163,6 @@ public class RecordingService extends Service {
 	
 	class VolumeScanner extends Thread {
 		
-		private int sleepTime = 1000;
 		private boolean done;
 		private String recordID;
 		private DatabaseAdapter dba;
@@ -182,7 +184,7 @@ public class RecordingService extends Service {
 				
 				dba.insertVolume(dateFormatter.format(date), volume, recordID);
 				try {
-					sleep(sleepTime);
+					sleep((int) (noiseScanInterval * 1000));
 				} catch (InterruptedException e) {
 					continue;
 				}

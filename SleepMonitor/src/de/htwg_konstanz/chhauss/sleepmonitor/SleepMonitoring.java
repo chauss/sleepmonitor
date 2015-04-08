@@ -20,6 +20,7 @@ public class SleepMonitoring extends Activity{
 	private Button recordBtn;
 	
 	private Spinner recOpts;
+	private Spinner noiseScanIntervals;
 	
 	private Boolean recordVolumeData;
 	private Boolean recordToRecordFiles;
@@ -33,6 +34,8 @@ public class SleepMonitoring extends Activity{
     	recording = false;
     	recordBtn = (Button) findViewById(R.id.recordBtn);
     	recOpts = (Spinner) findViewById(R.id.recordOptsSpinner);
+    	noiseScanIntervals = (Spinner) findViewById(R.id.noiseScanIntervalSpinner);
+    	noiseScanIntervals.setSelection(1);
     	
     	prepareRecordOptionsSpinner();
     }
@@ -74,12 +77,13 @@ public class SleepMonitoring extends Activity{
     	});
     	recOpts.setSelection(2);
 	}
-	
+		
 	public void onRecordButtonClicked(View v)  {
 		if(!recording){
 			Intent starter = new Intent(this, RecordingService.class);
 			starter.putExtra("recordVolumeData", recordVolumeData);
 			starter.putExtra("recordToRecordFiles", recordToRecordFiles);
+			starter.putExtra("noiseScanInterval", getNoiseScanInterval());
 			starter.setAction(RecordingService.START_RECORDING_ACTION);
 			startService(starter);
 			
@@ -92,6 +96,11 @@ public class SleepMonitoring extends Activity{
 			Toast.makeText(this, R.string.stoppedRecording, Toast.LENGTH_SHORT).show();
 		}
     }
+	
+	private double getNoiseScanInterval() {
+		String tmp = (String) noiseScanIntervals.getSelectedItem();
+		return Double.parseDouble(tmp);
+	}
 
 	private void activateRecordingState() {
 		recording = true;

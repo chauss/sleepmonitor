@@ -30,10 +30,27 @@
         <item>Only Record File</item>
         <item>Volume Data and Record File</item>
     </string-array>
+    <string-array name="noiseScanIntervals">
+        <item>0.1</item>
+        <item>0.5</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+    </string-array>
         <string name="whatToRecord">What shall be recorded:</string>
         <string name="recording">Recording...</string>
         <string name="recordFileSize">Size: %SIZE</string>
         <string name="recrodFileDuration">Duration: %DURATION</string>
         <string name="notAvailable">Not Available</string>
+        <string name="recordIntervalHard">Noise scan interval (in s):</string>
 
 </resources>
