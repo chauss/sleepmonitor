@@ -60,10 +60,12 @@ public class RecordDetails extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		try {
-			initMediaPlayer();
-		} catch (Exception e) {
-			e.printStackTrace();
+		if(record.getPath() != null) {
+			try {
+				initMediaPlayer();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		setRecordFileData();
 		initPlaybackControls();
@@ -72,12 +74,20 @@ public class RecordDetails extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		stopPlayback();
-		releaseMediaPlayer();
+		if(record.getPath() != null) {
+			stopPlayback();
+			releaseMediaPlayer();
+		}
 	}
 	
 	private void initPlaybackControls() {
 		recSeekBar = (SeekBar) findViewById(R.id.playbackSeekBar);
+
+		if(record.getPath() == null) {
+			recSeekBar.setEnabled(false);
+			return;
+		}
+		
 		recSeekBar.setMax(mediaPlayer.getDuration());
 		recSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			
@@ -106,7 +116,7 @@ public class RecordDetails extends Activity {
 			}
 		});
 		mediaPlayer.setDataSource(record.getPath());
-		mediaPlayer.prepareAsync();
+		mediaPlayer.prepare();
 	}
 	
 	private void releaseMediaPlayer() {
@@ -117,6 +127,7 @@ public class RecordDetails extends Activity {
 
 	private void setRecordFileData() {
 		if(record.getPath() != null) {
+			System.out.println(record.getPath());
 			File file = new File(record.getPath());
 			double size = (double) file.length() / BYTES_TO_KILOBYTES;
 			
@@ -175,7 +186,6 @@ public class RecordDetails extends Activity {
 		
 		mediaPlayer.pause();
 		mediaPlayer.seekTo(0);
-		mediaPlayer.reset();
 		seekBarProgress.stopProcessing();
 		seekBarProgress = null;
 		recSeekBar.setProgress(0);
@@ -190,7 +200,6 @@ public class RecordDetails extends Activity {
 	private void showLineChartForRecord() {
 		DatabaseAdapter dba = new DatabaseAdapter(getApplicationContext());
 		HashMap<Date, Integer> result = dba.selectAllByRecordID(record.getID());
-		System.out.println(result.size());
 		
 		LineChart lineChart = new LineChart(result);
 		Intent lineIntent = lineChart.getIntent(this);
