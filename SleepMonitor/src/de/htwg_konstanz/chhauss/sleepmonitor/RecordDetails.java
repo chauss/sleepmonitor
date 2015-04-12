@@ -20,6 +20,12 @@ public class RecordDetails extends Activity {
 	
 	private static final int BYTES_TO_KILOBYTES = 1024;
 	private static final int MILISEC_TO_SEC = 1000;
+	private static final int SEC_PER_MIN = 60;
+	private static final int MILISEC_TO_MIN = 60 * 1000;
+	private static final int MIN_PER_HOUR = 60;
+	private static final int MILISEC_TO_HOURS = 1000 * 60 * 60;
+	private static final int HOURS_PER_DAY = 24;
+	private static final int SLEEP_BETWEEN_SEEKBAR_UPDATE = 500; //ms
 	private static final String KILOBYTE_ENDING = " KB";
 	private static final String SECONDS_ENDING = " s";
 
@@ -29,6 +35,7 @@ public class RecordDetails extends Activity {
 	private Record record;
 	private SeekBar recSeekBar;
 	private SeekBarProgress seekBarProgress;
+	private TextView curPosTV;
 	
 	private boolean playing = false;
 
@@ -46,6 +53,7 @@ public class RecordDetails extends Activity {
 		
 		playRecordBtn = (Button) findViewById(R.id.playRecordBtn);
 		showLineChartBtn = (Button) findViewById(R.id.showLineChartBtn);
+		curPosTV = (TextView) findViewById(R.id.curPosTV);
 		
 		if(record.getPath() == null) {
 			playRecordBtn.setEnabled(false);
@@ -101,6 +109,8 @@ public class RecordDetails extends Activity {
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				if(mediaPlayer != null && fromUser) {
 					mediaPlayer.seekTo(progress);
+					
+		            curPosTV.setText(getTimeFromMS(progress));
 				}
 			}
 		});
@@ -127,7 +137,6 @@ public class RecordDetails extends Activity {
 
 	private void setRecordFileData() {
 		if(record.getPath() != null) {
-			System.out.println(record.getPath());
 			File file = new File(record.getPath());
 			double size = (double) file.length() / BYTES_TO_KILOBYTES;
 			
@@ -189,6 +198,7 @@ public class RecordDetails extends Activity {
 		seekBarProgress.stopProcessing();
 		seekBarProgress = null;
 		recSeekBar.setProgress(0);
+		curPosTV.setText(R.string.currentPositionStartValue);
 		
 		playing = false;
 		playRecordBtn.setText(R.string.playRecord);
@@ -206,6 +216,15 @@ public class RecordDetails extends Activity {
 		startActivity(lineIntent);
 	}
 	
+	private String getTimeFromMS(long ms) {
+		StringBuilder sb = new StringBuilder();
+		sb.append((ms / MILISEC_TO_HOURS) % HOURS_PER_DAY + ":");
+		sb.append((ms / MILISEC_TO_MIN) % MIN_PER_HOUR + ":");
+        sb.append((ms / MILISEC_TO_SEC)  % SEC_PER_MIN);
+        
+        return sb.toString();
+	}
+	
 	class SeekBarProgress extends Thread {
 		
 		private Boolean done = false;
@@ -217,6 +236,19 @@ public class RecordDetails extends Activity {
 			while(!done && mediaPlayer != null) {
 				mCurrentPosition = mediaPlayer.getCurrentPosition();
 	            recSeekBar.setProgress(mCurrentPosition);
+	            
+	            final String curPos = getTimeFromMS(mCurrentPosition);
+	            
+	            runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						curPosTV.setText(curPos);
+					}
+	            });
+	            
+	            try {
+					Thread.sleep(SLEEP_BETWEEN_SEEKBAR_UPDATE);
+				} catch (InterruptedException e) {}
 			}
 		}
 		

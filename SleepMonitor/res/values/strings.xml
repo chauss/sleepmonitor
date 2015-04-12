@@ -52,5 +52,6 @@
         <string name="recrodFileDuration">Duration: %DURATION</string>
         <string name="notAvailable">Not Available</string>
         <string name="recordIntervalHard">Noise scan interval (in s):</string>
+        <string name="currentPositionStartValue">0:0:0</string>
 
 </resources>
