@@ -3,6 +3,9 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -30,7 +33,8 @@ public class RecordDetails extends Activity {
 	private static final String SECONDS_ENDING = " s";
 
 	private MediaPlayer mediaPlayer;
-	private Button playRecordBtn;
+	private Button playPauseRecordBtn;
+	private Button stopRecordBtn;
 	private Button showLineChartBtn;
 	private Record record;
 	private SeekBar recSeekBar;
@@ -50,14 +54,17 @@ public class RecordDetails extends Activity {
 		
 		TextView recordTV = (TextView) findViewById(R.id.recordNameTV);
 		recordTV.setText("Record: " + record.getName());
-		
-		playRecordBtn = (Button) findViewById(R.id.playRecordBtn);
-		showLineChartBtn = (Button) findViewById(R.id.showLineChartBtn);
+
 		curPosTV = (TextView) findViewById(R.id.curPosTV);
 		
+		playPauseRecordBtn = (Button) findViewById(R.id.playPauseRecordBtn);
+		stopRecordBtn = (Button) findViewById(R.id.stopRecordBtn);
+		
+		showLineChartBtn = (Button) findViewById(R.id.showLineChartBtn);
+		
 		if(record.getPath() == null) {
-			playRecordBtn.setEnabled(false);
-			playRecordBtn.setText(R.string.noRecordFileFound);
+			playPauseRecordBtn.setEnabled(false);
+			stopRecordBtn.setEnabled(false);
 		}
 		if(record.getID() == null) {
 			showLineChartBtn.setEnabled(false);
@@ -162,12 +169,15 @@ public class RecordDetails extends Activity {
 
 	public void onButtonClicked(View v) {
 		switch(v.getId()) {
-		case R.id.playRecordBtn:
+		case R.id.playPauseRecordBtn:
 			if(!playing) {
 				playRecord();
 			} else {
-				stopPlayback();
+				pauseRecord();
 			}
+			break;
+		case R.id.stopRecordBtn:
+			stopPlayback();
 			break;
 		case R.id.showLineChartBtn:
 			showLineChartForRecord();
@@ -178,14 +188,27 @@ public class RecordDetails extends Activity {
 	private void playRecord() {
 		if(seekBarProgress == null) {
 			seekBarProgress = new SeekBarProgress();
+			seekBarProgress.start();
+		} else {
+			seekBarProgress.unpause();
 		}
 		
 		mediaPlayer.start();
-		seekBarProgress.start();
 		
 		playing = true;
-		playRecordBtn.setText(R.string.stopPlayback);
+		playPauseRecordBtn.setText(R.string.pause);
 		showLineChartBtn.setEnabled(false);
+	}
+	
+	private void pauseRecord() {
+		mediaPlayer.pause();
+		seekBarProgress.pause();
+		
+		playing = false;
+		playPauseRecordBtn.setText(R.string.play);
+		if(record.getID() != null) {
+			showLineChartBtn.setEnabled(true);
+		}
 	}
 	
 	private void stopPlayback() {
@@ -201,7 +224,7 @@ public class RecordDetails extends Activity {
 		curPosTV.setText(R.string.currentPositionStartValue);
 		
 		playing = false;
-		playRecordBtn.setText(R.string.playRecord);
+		playPauseRecordBtn.setText(R.string.play);
 		if(record.getID() != null) {
 			showLineChartBtn.setEnabled(true);
 		}
@@ -228,12 +251,24 @@ public class RecordDetails extends Activity {
 	class SeekBarProgress extends Thread {
 		
 		private Boolean done = false;
+		private Boolean paused = false;
+		private Lock pauseLock = new ReentrantLock();
+		private Condition pauseCond = pauseLock.newCondition();
 		
 		@Override
 		public void run() {
 			int mCurrentPosition;
 			
 			while(!done && mediaPlayer != null) {
+				pauseLock.lock();
+				while(paused) {
+					try {
+						pauseCond.await();
+					} catch (InterruptedException e) {}
+					if(done) {
+						return;
+					}
+				}
 				mCurrentPosition = mediaPlayer.getCurrentPosition();
 	            recSeekBar.setProgress(mCurrentPosition);
 	            
@@ -245,6 +280,7 @@ public class RecordDetails extends Activity {
 						curPosTV.setText(curPos);
 					}
 	            });
+	            pauseLock.unlock();
 	            
 	            try {
 					Thread.sleep(SLEEP_BETWEEN_SEEKBAR_UPDATE);
@@ -252,8 +288,22 @@ public class RecordDetails extends Activity {
 			}
 		}
 		
+		public void pause() {
+			this.paused = true;
+		}
+		
+		public void unpause() {
+			pauseLock.lock();
+			this.paused = false;
+			this.pauseCond.signal();
+			pauseLock.unlock();
+		}
+		
 		public void stopProcessing() {
+			pauseLock.lock();
 			done = true;
+			this.pauseCond.signal();
+			pauseLock.unlock();
 		}
 	}
 }

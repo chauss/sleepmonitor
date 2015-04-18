@@ -37,21 +37,42 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/currentPositionStartValue"
+        android:layout_marginTop="10dp"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <SeekBar
         android:id="@+id/playbackSeekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:layout_marginTop="20dp" />
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp" />
 
-    <Button
-        android:id="@+id/playRecordBtn"
+    <LinearLayout
+        style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onButtonClicked"
-        android:text="@string/playRecord" />
+        android:layout_marginBottom="20dp"
+        android:gravity="center_horizontal" >
+
+        <Button
+            android:id="@+id/playPauseRecordBtn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onButtonClicked"
+            android:text="@string/play" />
+
+        <Button
+            android:id="@+id/stopRecordBtn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="onButtonClicked"
+            android:text="@string/stop" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/showLineChartBtn"

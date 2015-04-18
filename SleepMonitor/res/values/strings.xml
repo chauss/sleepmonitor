@@ -6,8 +6,8 @@
     <string name="action_settings">Settings</string>
     <string name="startRecording">Start Recording</string>
     <string name="stopRecording">Stop Recording</string>
-    <string name="playRecord">Play Record</string>
-    <string name="stopPlayback">Stop Playback</string>
+    <string name="play">Play</string>
+    <string name="stop">Stop</string>
     <string name="sleepMonitoring">Sleep Monitoring</string>
     <string name="stoppedRecording">Saved Record.\nYou can find it under \&quot;My Records\&quot;</string>
     <string name="couldNotCreateRecordFile">Could not create Record File</string>
@@ -53,5 +53,8 @@
         <string name="notAvailable">Not Available</string>
         <string name="recordIntervalHard">Noise scan interval (in s):</string>
         <string name="currentPositionStartValue">0:0:0</string>
+        <string name="rewind">RR</string>
+        <string name="fastForward">FF</string>
+        <string name="pause">Pause</string>
 
 </resources>
