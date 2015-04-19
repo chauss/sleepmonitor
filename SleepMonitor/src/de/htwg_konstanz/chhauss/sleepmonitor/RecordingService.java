@@ -61,7 +61,6 @@ public class RecordingService extends Service {
 			recordToRecordFile = extras.getBoolean("recordToRecordFiles");
 			noiseScanInterval = extras.getDouble("noiseScanInterval");
 			
-			Toast.makeText(this, "Interval: " + noiseScanInterval, Toast.LENGTH_SHORT).show();
 			startRecording();
 			startForeground(1, getRecordingNotification());
 			
@@ -111,8 +110,7 @@ public class RecordingService extends Service {
 			rID = recordID;
 		}
 		
-		Record r = new Record(rPath, rID, rName);
-		return r;
+		return new Record(rPath, rID, rName);
 	}
 
 	@Override
