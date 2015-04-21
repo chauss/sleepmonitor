@@ -65,7 +65,9 @@ public class RecordingService extends Service {
 			startForeground(1, getRecordingNotification());
 			
 		} else if(action.equals(STOP_RECORDING_ACTION)) {
-			Intent startRecordDetailsIntent = new Intent(this, RecordDetails.class);
+		    stopRecording();
+
+		    Intent startRecordDetailsIntent = new Intent(this, RecordDetails.class);
 			startRecordDetailsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startRecordDetailsIntent.putExtra("record", createRecordForRecordDetailsIntent());
 			startActivity(startRecordDetailsIntent);
@@ -111,13 +113,6 @@ public class RecordingService extends Service {
 		}
 		
 		return new Record(rPath, rID, rName);
-	}
-
-	@Override
-	public void onDestroy() {
-		super.onDestroy();
-		
-		stopRecording();
 	}
 
 	@Override
