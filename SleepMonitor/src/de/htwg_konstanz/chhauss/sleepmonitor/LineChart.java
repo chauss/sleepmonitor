@@ -51,9 +51,7 @@ public class LineChart {
 		mRenderer.setAxisTitleTextSize(AXIS_TITLE_SIZE);
 		mRenderer.setMargins(new int[] {0, 2 * AXIS_TITLE_SIZE, AXIS_TITLE_SIZE, 0});
 		
-		Intent intent = ChartFactory.getTimeChartIntent(context, dataset, mRenderer, "Test Title");
-		
-		return intent;
+		return ChartFactory.getTimeChartIntent(context, dataset, mRenderer, "Noise Chart");
 	}
 	
 }

@@ -56,5 +56,6 @@
         <string name="rewind">RR</string>
         <string name="fastForward">FF</string>
         <string name="pause">Pause</string>
+        <string name="noiseMeter">Noise Meter</string>
 
 </resources>
