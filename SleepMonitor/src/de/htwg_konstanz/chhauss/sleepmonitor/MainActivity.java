@@ -49,10 +49,6 @@ public class MainActivity extends Activity {
     	case R.id.deleteAllRecordsBtn:
     		deleteAllRecords();
     		break;
-    	case R.id.noiseMeterBtn:
-    		NoiseMeter nm = new NoiseMeter();
-    		startActivity(nm.getIntent(this));
-    		break;
     	}
     }
 

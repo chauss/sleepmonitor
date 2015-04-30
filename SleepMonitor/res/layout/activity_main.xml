@@ -22,13 +22,6 @@
         android:layout_height="wrap_content"
         android:onClick="onButtonClicked"
         android:text="@string/myRecords" />
-
-    <Button
-        android:id="@+id/noiseMeterBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="onButtonClicked"
-        android:text="@string/noiseMeter" />
     
     <Space
 		android:layout_width="1dp"
