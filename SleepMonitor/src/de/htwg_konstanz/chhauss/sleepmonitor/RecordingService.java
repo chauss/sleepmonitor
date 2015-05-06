@@ -1,17 +1,25 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
+import static java.lang.Math.max;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -29,12 +37,17 @@ public class RecordingService extends Service {
 	private Recorder rec;
 	private SimpleDateFormat dateFormatter;
 	private VolumeScanner volumeScanner;
+	private DatabaseAdapter dba;
 	
 	private String recordPath;
 	private String recordID;
 	private Boolean recordVolumeData;
 	private Boolean recordToRecordFile;
 	private double noiseScanInterval;
+	private double acc_x;
+	private double acc_y;
+	private double acc_z;
+	Timer timer;
 	
 	@Override
 	public void onCreate() {
@@ -51,11 +64,39 @@ public class RecordingService extends Service {
     	recordPath = file_base + "/" + recordID + getString(R.string.record_file_ending);
 	}
 
-	@Override
+	private void initAccelerometer() {
+	    SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+	    
+	    List<Sensor> sensorList = sm.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        if (sensorList.size() > 0) {
+            sm.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+                    if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                        synchronized(RecordingService.class) {
+                            acc_x = max(acc_x, event.values[0]);
+                            acc_y = max(acc_y, event.values[1]);
+                            acc_z = max(acc_z, event.values[2]);
+                        }
+                    }
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+            },
+                                sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                                SensorManager.SENSOR_DELAY_GAME);
+        } else {
+            //TODO was passiert wenn man keinen accelerometer hat
+        }
+    }
+
+    @Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		String action = intent.getAction();
 		
 		if(action.equals(START_RECORDING_ACTION)) {
+		    initAccelerometer();
 			Bundle extras = intent.getExtras();
 			recordVolumeData = extras.getBoolean("recordVolumeData");
 			recordToRecordFile = extras.getBoolean("recordToRecordFiles");
@@ -130,12 +171,27 @@ public class RecordingService extends Service {
     		stopRecording();
     		return;
     	}
-    	
+    	dba = new DatabaseAdapter(this);
     	// Start volumeScanner if Volume Data shall be recorded
 		if(recordVolumeData) {
-			volumeScanner = new VolumeScanner(this, recordID);
+			volumeScanner = new VolumeScanner(recordID);
 			volumeScanner.start();
 		}
+		
+		// Start Accelerometer scanning
+		timer = new Timer();
+		TimerTask t = new TimerTask() {
+            
+            @Override
+            public void run() {
+                Date date = new Date();
+                synchronized(RecordingService.class) {
+                    dba.insertAccelerometerValues(dateFormatter.format(date), acc_x, acc_y, acc_z, recordID);
+                    acc_x = acc_y = acc_z = 0;
+                }
+            }
+        };
+        timer.schedule(t, (long) (noiseScanInterval * 1000), (long) (noiseScanInterval * 1000));
 	}
 
 	private void createRecorderInstance(String recordID) {
@@ -151,6 +207,12 @@ public class RecordingService extends Service {
 			volumeScanner.stopScanning();
 			volumeScanner = null;
 		}
+		if(timer != null) {
+		    timer.cancel();
+		}
+		if(dba != null) {
+		    dba.closeDatabase();
+		}
 		rec.stop();
 	}
 	
@@ -158,12 +220,10 @@ public class RecordingService extends Service {
 		
 		private boolean done;
 		private String recordID;
-		private DatabaseAdapter dba;
 		
-		private VolumeScanner(Context context, String recordID) {
+		private VolumeScanner(String recordID) {
 			done = false;
 			this.recordID = recordID;
-			dba = new DatabaseAdapter(context);
 		}
 
 		@Override
@@ -184,7 +244,6 @@ public class RecordingService extends Service {
 				
 				// TODO change sleepTime due to the value of volume
 			}
-			dba.closeDatabase();
 		}
 		
 		public void stopScanning() {

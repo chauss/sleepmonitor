@@ -232,9 +232,10 @@ public class RecordDetails extends Activity {
 
 	private void showLineChartForRecord() {
 		DatabaseAdapter dba = new DatabaseAdapter(getApplicationContext());
-		HashMap<Date, Integer> result = dba.selectAllByRecordID(record.getID());
+		HashMap<Date, Integer> volume_result = dba.selectAllVolumeByRecordID(record.getID());
+		HashMap<Date, Double> acc_result = dba.selectAllAccValuesByRecordID(record.getID());
 		
-		LineChart lineChart = new LineChart(result);
+		LineChart lineChart = new LineChart(volume_result, acc_result);
 		Intent lineIntent = lineChart.getIntent(this);
 		startActivity(lineIntent);
 	}

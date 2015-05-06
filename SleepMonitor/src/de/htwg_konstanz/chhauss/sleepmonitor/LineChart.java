@@ -22,28 +22,47 @@ public class LineChart {
 	private static final String X_AXIS_TITLE = "Time";
 	private static final String Y_AXIS_TITLE = "Volume (db)";
 	
-	private HashMap<Date, Integer> data;
+	private HashMap<Date, Integer> volume_data;
+	private HashMap<Date, Double> acc_data;
 	
-	public LineChart(HashMap<Date, Integer> data) {
-		this.data = data;
+	public LineChart(HashMap<Date, Integer> volume_data, HashMap<Date, Double> acc_data) {
+		this.volume_data = volume_data;
+		this.acc_data = acc_data;
 	}
 	
 	public Intent getIntent(Context context) {
-		TimeSeries series = new TimeSeries("Volume");
-		for (Map.Entry<Date, Integer> entry : data.entrySet()) {
-			series.add(entry.getKey(), entry.getValue());
+	    // Series for volume_data
+		TimeSeries volume_series = new TimeSeries("Volume");
+		for (Map.Entry<Date, Integer> entry : volume_data.entrySet()) {
+		    volume_series.add(entry.getKey(), entry.getValue());
 		}
 		
+		// Series for acc data
+		TimeSeries acc_series = new TimeSeries("Accelerometer");
+        for (Map.Entry<Date, Double> entry : acc_data.entrySet()) {
+            acc_series.add(entry.getKey(), entry.getValue());
+        }
+		
 		XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
-		dataset.addSeries(series);
+		dataset.addSeries(volume_series);
+		dataset.addSeries(acc_series);
+		
+		
+		XYSeriesRenderer volume_renderer = new XYSeriesRenderer();
+		volume_renderer.setColor(Color.GREEN);
+		volume_renderer.setLineWidth(2);
+		volume_renderer.setPointStyle(PointStyle.SQUARE);
+		volume_renderer.setFillPoints(true);
+		
+		XYSeriesRenderer acc_renderer = new XYSeriesRenderer();
+		acc_renderer.setColor(Color.RED);
+		acc_renderer.setLineWidth(2);
+		acc_renderer.setPointStyle(PointStyle.SQUARE);
+		acc_renderer.setFillPoints(true);
 		
 		XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();
-		XYSeriesRenderer renderer = new XYSeriesRenderer();
-		renderer.setColor(Color.GREEN);
-		renderer.setLineWidth(2);
-		renderer.setPointStyle(PointStyle.SQUARE);
-		renderer.setFillPoints(true);
-		mRenderer.addSeriesRenderer(renderer);
+		mRenderer.addSeriesRenderer(volume_renderer);
+		mRenderer.addSeriesRenderer(acc_renderer);
 		mRenderer.setShowLegend(false);
 		mRenderer.setLabelsTextSize(LABEL_SIZE);
 		mRenderer.setXTitle(X_AXIS_TITLE);
