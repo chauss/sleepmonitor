@@ -22,7 +22,7 @@ public class SleepMonitoring extends Activity{
 	private Spinner recOpts;
 	private Spinner noiseScanIntervals;
 	
-	private Boolean recordVolumeData;
+	private Boolean recordUserData;
 	private Boolean recordToRecordFiles;
 	
 	@Override
@@ -35,7 +35,7 @@ public class SleepMonitoring extends Activity{
     	recordBtn = (Button) findViewById(R.id.recordBtn);
     	recOpts = (Spinner) findViewById(R.id.recordOptsSpinner);
     	noiseScanIntervals = (Spinner) findViewById(R.id.noiseScanIntervalSpinner);
-    	noiseScanIntervals.setSelection(1);
+    	noiseScanIntervals.setSelection(4);
     	
     	prepareRecordOptionsSpinner();
     }
@@ -57,15 +57,15 @@ public class SleepMonitoring extends Activity{
 			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 				switch(position) {
 				case 0:
-					recordVolumeData = true;
+					recordUserData = true;
 					recordToRecordFiles = false;
 					break;
 				case 1:
-					recordVolumeData = false;
+					recordUserData = false;
 					recordToRecordFiles = true;
 					break;
 				case 2:
-					recordVolumeData = true;
+					recordUserData = true;
 					recordToRecordFiles = true;
 					break;
 				}
@@ -81,7 +81,7 @@ public class SleepMonitoring extends Activity{
 	public void onRecordButtonClicked(View v)  {
 		if(!recording){
 			Intent starter = new Intent(this, RecordingService.class);
-			starter.putExtra("recordVolumeData", recordVolumeData);
+			starter.putExtra("recordUserData", recordUserData);
 			starter.putExtra("recordToRecordFiles", recordToRecordFiles);
 			starter.putExtra("noiseScanInterval", getNoiseScanInterval());
 			starter.setAction(RecordingService.START_RECORDING_ACTION);

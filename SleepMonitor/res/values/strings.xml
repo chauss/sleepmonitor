@@ -26,13 +26,11 @@
     <string name="resetedDatabase">Database Has Been Reseted</string>
     
     <string-array name="recordingOptions">
-        <item>Only Volume Data</item>
-        <item>Only Record File</item>
-        <item>Volume Data and Record File</item>
+        <item>User Data(Movement + Sound)</item>
+        <item>Audio File</item>
+        <item>User Data And Audio File</item>
     </string-array>
     <string-array name="noiseScanIntervals">
-        <item>0.1</item>
-        <item>0.5</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>
