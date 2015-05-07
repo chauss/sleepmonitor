@@ -1,5 +1,7 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
+import static java.lang.Math.max;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,17 +38,16 @@ public class LineChart {
 		for (Map.Entry<Date, Integer> entry : volume_data.entrySet()) {
 		    volume_series.add(entry.getKey(), entry.getValue());
 		}
-		
+
 		// Series for acc data
 		TimeSeries acc_series = new TimeSeries("Accelerometer");
         for (Map.Entry<Date, Double> entry : acc_data.entrySet()) {
-            acc_series.add(entry.getKey(), entry.getValue());
+            acc_series.add(entry.getKey(), max(0, ((entry.getValue() - 9.81 ) * 1000)));
         }
 		
-		XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
+	    XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
 		dataset.addSeries(volume_series);
 		dataset.addSeries(acc_series);
-		
 		
 		XYSeriesRenderer volume_renderer = new XYSeriesRenderer();
 		volume_renderer.setColor(Color.GREEN);
@@ -57,7 +58,7 @@ public class LineChart {
 		XYSeriesRenderer acc_renderer = new XYSeriesRenderer();
 		acc_renderer.setColor(Color.RED);
 		acc_renderer.setLineWidth(2);
-		acc_renderer.setPointStyle(PointStyle.SQUARE);
+		acc_renderer.setPointStyle(PointStyle.DIAMOND);
 		acc_renderer.setFillPoints(true);
 		
 		XYMultipleSeriesRenderer mRenderer = new XYMultipleSeriesRenderer();

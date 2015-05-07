@@ -118,7 +118,6 @@ public class DatabaseAdapter {
             xyz = cursor.getDouble(acc_xIdx) + 
                   cursor.getDouble(acc_yIdx) +
                   cursor.getDouble(acc_zIdx);
-            
             try {
                 result.put(dateFormatter.parse(dateAndTime), xyz);
             } catch (ParseException e) {
@@ -173,7 +172,7 @@ public class DatabaseAdapter {
 	
 	static class DatabaseHelper extends SQLiteOpenHelper{
 		private static final String DB_NAME = "sleepmonitor.db";
-		private static final int DB_VERSION = 1;
+		private static final int DB_VERSION = 2;
 		
 		private static final String TABLE_SLEEPVOLUME = "SLEEPVOLUME";
 		private static final String UID = "_id";
@@ -198,8 +197,8 @@ public class DatabaseAdapter {
 						   "(" + UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 						   DATEANDTIME + " VARCHAR(20)," +
 						   VOLUME + " INTEGER," +
-						   RECORD_ID + " VARCHAR(20));" +
-						   "CREATE TABLE " + TABLE_ACCELEROMETER +
+						   RECORD_ID + " VARCHAR(20));");
+				db.execSQL("CREATE TABLE " + TABLE_ACCELEROMETER +
 						   "(" + UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 						   DATEANDTIME + " VARCHAR(20)," +
 						   ACC_X + " REAL," +

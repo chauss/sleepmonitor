@@ -26,7 +26,7 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
-public class RecordingService extends Service {
+public class RecordingService extends Service implements SensorEventListener{
 	
 	public static final String START_RECORDING_ACTION = "RecordingService.action.startRecording";
 	public static final String STOP_RECORDING_ACTION = "RecordingService.action.stopRecording";
@@ -36,8 +36,8 @@ public class RecordingService extends Service {
 	
 	private Recorder rec;
 	private SimpleDateFormat dateFormatter;
-	private VolumeScanner volumeScanner;
 	private DatabaseAdapter dba;
+	SensorManager sm;
 	
 	private String recordPath;
 	private String recordID;
@@ -47,7 +47,8 @@ public class RecordingService extends Service {
 	private double acc_x;
 	private double acc_y;
 	private double acc_z;
-	Timer timer;
+	Timer acc_timer;
+	Timer volume_timer;
 	
 	@Override
 	public void onCreate() {
@@ -63,33 +64,40 @@ public class RecordingService extends Service {
     	recordID = dateFormatter.format(date);
     	recordPath = file_base + "/" + recordID + getString(R.string.record_file_ending);
 	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		stopRecording();
+	}
 
 	private void initAccelerometer() {
-	    SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+	    sm = (SensorManager) getSystemService(SENSOR_SERVICE);
 	    
 	    List<Sensor> sensorList = sm.getSensorList(Sensor.TYPE_ACCELEROMETER);
         if (sensorList.size() > 0) {
-            sm.registerListener(new SensorEventListener() {
-                @Override
-                public void onSensorChanged(SensorEvent event) {
-                    if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                        synchronized(RecordingService.class) {
-                            acc_x = max(acc_x, event.values[0]);
-                            acc_y = max(acc_y, event.values[1]);
-                            acc_z = max(acc_z, event.values[2]);
-                        }
-                    }
-                }
-
-                @Override
-                public void onAccuracyChanged(Sensor sensor, int accuracy) {}
-            },
+            sm.registerListener(this,
                                 sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                                 SensorManager.SENSOR_DELAY_GAME);
         } else {
             //TODO was passiert wenn man keinen accelerometer hat
         }
     }
+	
+	@Override
+    public void onSensorChanged(SensorEvent event) {
+        if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            synchronized(RecordingService.class) {
+                acc_x = max(acc_x, event.values[0]);
+                acc_y = max(acc_y, event.values[1]);
+                acc_z = max(acc_z, event.values[2]);
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+
 
     @Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
@@ -172,15 +180,14 @@ public class RecordingService extends Service {
     		return;
     	}
     	dba = new DatabaseAdapter(this);
-    	// Start volumeScanner if Volume Data shall be recorded
-		if(recordVolumeData) {
-			volumeScanner = new VolumeScanner(recordID);
-			volumeScanner.start();
-		}
+		startVolumeTimer();
 		
-		// Start Accelerometer scanning
-		timer = new Timer();
-		TimerTask t = new TimerTask() {
+		startAccTimer();
+	}
+
+	private void startAccTimer() {
+		acc_timer = new Timer();
+		TimerTask acc_task = new TimerTask() {
             
             @Override
             public void run() {
@@ -191,7 +198,22 @@ public class RecordingService extends Service {
                 }
             }
         };
-        timer.schedule(t, (long) (noiseScanInterval * 1000), (long) (noiseScanInterval * 1000));
+        acc_timer.schedule(acc_task, 0, (long) (noiseScanInterval * 1000));
+	}
+
+	private void startVolumeTimer() {
+		if(recordVolumeData) {
+			volume_timer = new Timer();
+			TimerTask volume_task = new TimerTask() {
+
+				@Override
+				public void run() {
+					Date date = new Date();
+					dba.insertVolume(dateFormatter.format(date), (int) rec.getAmplitudeEMA(), recordID);
+				}
+			};
+			volume_timer.schedule(volume_task, 0, (long) (noiseScanInterval * 1000));
+		}
 	}
 
 	private void createRecorderInstance(String recordID) {
@@ -203,51 +225,19 @@ public class RecordingService extends Service {
 	}
 	
 	private void stopRecording() {
-		if(volumeScanner != null){
-			volumeScanner.stopScanning();
-			volumeScanner = null;
+		if(volume_timer != null){
+			volume_timer.cancel();
+			volume_timer.purge();
 		}
-		if(timer != null) {
-		    timer.cancel();
+		if(acc_timer != null) {
+		    acc_timer.cancel();
+		    acc_timer.purge();
 		}
 		if(dba != null) {
 		    dba.closeDatabase();
 		}
+		
+		sm.unregisterListener(this);
 		rec.stop();
-	}
-	
-	class VolumeScanner extends Thread {
-		
-		private boolean done;
-		private String recordID;
-		
-		private VolumeScanner(String recordID) {
-			done = false;
-			this.recordID = recordID;
-		}
-
-		@Override
-		public void run() {
-			int volume;
-			Date date;
-			
-			while(!done) {
-				date = new Date();
-				volume = (int) rec.getAmplitudeEMA();
-				
-				dba.insertVolume(dateFormatter.format(date), volume, recordID);
-				try {
-					sleep((int) (noiseScanInterval * 1000));
-				} catch (InterruptedException e) {
-					continue;
-				}
-				
-				// TODO change sleepTime due to the value of volume
-			}
-		}
-		
-		public void stopScanning() {
-			done = true;
-		}
 	}
 }
