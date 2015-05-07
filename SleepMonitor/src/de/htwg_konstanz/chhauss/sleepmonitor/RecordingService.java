@@ -41,7 +41,7 @@ public class RecordingService extends Service implements SensorEventListener{
 	
 	private String recordPath;
 	private String recordID;
-	private Boolean recordVolumeData;
+	private Boolean recordUserData;
 	private Boolean recordToRecordFile;
 	private double noiseScanInterval;
 	private double acc_x;
@@ -106,7 +106,7 @@ public class RecordingService extends Service implements SensorEventListener{
 		if(action.equals(START_RECORDING_ACTION)) {
 		    initAccelerometer();
 			Bundle extras = intent.getExtras();
-			recordVolumeData = extras.getBoolean("recordVolumeData");
+			recordUserData = extras.getBoolean("recordUserData");
 			recordToRecordFile = extras.getBoolean("recordToRecordFiles");
 			noiseScanInterval = extras.getDouble("noiseScanInterval");
 			
@@ -157,7 +157,7 @@ public class RecordingService extends Service implements SensorEventListener{
 			rPath = recordPath;
 		}
 		
-		if(recordVolumeData) {
+		if(recordUserData) {
 			rID = recordID;
 		}
 		
@@ -180,9 +180,11 @@ public class RecordingService extends Service implements SensorEventListener{
     		return;
     	}
     	dba = new DatabaseAdapter(this);
-		startVolumeTimer();
-		
-		startAccTimer();
+    	
+    	if(recordUserData) {
+			startVolumeTimer();
+			startAccTimer();
+    	}
 	}
 
 	private void startAccTimer() {
@@ -202,18 +204,16 @@ public class RecordingService extends Service implements SensorEventListener{
 	}
 
 	private void startVolumeTimer() {
-		if(recordVolumeData) {
-			volume_timer = new Timer();
-			TimerTask volume_task = new TimerTask() {
+		volume_timer = new Timer();
+		TimerTask volume_task = new TimerTask() {
 
-				@Override
-				public void run() {
-					Date date = new Date();
-					dba.insertVolume(dateFormatter.format(date), (int) rec.getAmplitudeEMA(), recordID);
-				}
-			};
-			volume_timer.schedule(volume_task, 0, (long) (noiseScanInterval * 1000));
-		}
+			@Override
+			public void run() {
+				Date date = new Date();
+				dba.insertVolume(dateFormatter.format(date), (int) rec.getAmplitudeEMA(), recordID);
+			}
+		};
+		volume_timer.schedule(volume_task, 0, (long) (noiseScanInterval * 1000));
 	}
 
 	private void createRecorderInstance(String recordID) {
