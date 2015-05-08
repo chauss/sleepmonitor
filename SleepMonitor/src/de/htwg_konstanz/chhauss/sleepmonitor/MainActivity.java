@@ -67,7 +67,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	public void onTabReselected(Tab tab, FragmentTransaction ft) {}
 	
 	private void refreshMyRecords() {
-		MyRecords myRecs = (MyRecords) getSupportFragmentManager().findFragmentById(R.id.myRecFrag);
+		MyRecords myRecs = (MyRecords) getSupportFragmentManager().findFragmentById(android.R.id.list);
 		System.out.println("myrecs: " + myRecs);
 		if(myRecs != null) {
 			System.out.println("refreshing");

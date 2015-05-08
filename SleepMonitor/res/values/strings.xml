@@ -9,7 +9,7 @@
     <string name="play">Play</string>
     <string name="stop">Stop</string>
     <string name="sleepMonitoring">Sleep Monitoring</string>
-    <string name="stoppedRecording">Saved Record.\nYou can find it under \&quot;My Records\&quot;</string>
+    <string name="stoppedRecording">Stopped Recording</string>
     <string name="couldNotCreateRecordFile">Could not create Record File</string>
     <string name="app_directory">/sleepmonitoring</string>
     <string name="record_directory">/records</string>
