@@ -9,12 +9,43 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 
 
 public class MainActivity extends FragmentActivity implements ActionBar.TabListener {
 	ActionBar actionBar;
 	ViewPager viewPager;
 	FragmentPageAdapter fpa;
+	
+	private int group1Id = 1;
+
+	int resetDatabaseId = Menu.FIRST;
+	int deleteRecordsId = Menu.FIRST +1;
+	
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+	    menu.add(group1Id, resetDatabaseId, resetDatabaseId, getString(R.string.resetDatabase));
+	    menu.add(group1Id, deleteRecordsId, deleteRecordsId, getString(R.string.deleteAllRecords));
+
+	    return super.onCreateOptionsMenu(menu); 
+    }
+	
+	@Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+    switch (item.getItemId()) {
+    case 1:
+    	resetDatabase();
+    	return true;
+	case 2:
+		deleteAllRecords();
+		return true;
+	default:
+		return super.onOptionsItemSelected(item);
+    }
+}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +87,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	@Override
 	public void onTabSelected(Tab tab, FragmentTransaction ft) {
 		viewPager.setCurrentItem(tab.getPosition());
-		System.out.println("ontabselected");
-		refreshMyRecords();
 	}
 
 	@Override
@@ -65,15 +94,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
 	@Override
 	public void onTabReselected(Tab tab, FragmentTransaction ft) {}
-	
-	private void refreshMyRecords() {
-		MyRecords myRecs = (MyRecords) getSupportFragmentManager().findFragmentById(android.R.id.list);
-		System.out.println("myrecs: " + myRecs);
-		if(myRecs != null) {
-			System.out.println("refreshing");
-			myRecs.refreshListAdapter();
-		}
-	}
 	
 	private void createAppDirectory() {
 		String extStorageDir = Environment.getExternalStorageDirectory().getAbsolutePath();
@@ -88,5 +108,24 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         if(!record_dir.exists()) {
         	record_dir.mkdir();
         }
+	}
+	
+	private void resetDatabase() {
+		DatabaseAdapter dba = new DatabaseAdapter(this);
+		dba.resetDatabase();
+		Toast.makeText(this, R.string.resetedDatabase, Toast.LENGTH_SHORT).show();
+	}
+    
+	private void deleteAllRecords() {
+		File RECORD_DIR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
+								   getString(R.string.app_directory) +
+								   getString(R.string.record_directory));
+		File[] files = RECORD_DIR.listFiles();
+		for(File file : files) {
+			file.delete();
+		}
+		Toast.makeText(this,
+				       String.format(getString(R.string.succRemovedAllRecordFiles), files.length),
+				       Toast.LENGTH_SHORT).show();
 	}
 }
