@@ -7,14 +7,18 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-public class SleepMonitoring extends Activity{
+public class SleepMonitoring extends Fragment implements OnClickListener {
 
 	private boolean recording;
 	private Button recordBtn;
@@ -25,23 +29,32 @@ public class SleepMonitoring extends Activity{
 	private Boolean recordUserData;
 	private Boolean recordToRecordFiles;
 	
+	private Activity thisActivity;
+	
 	@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sleepmonitoring);
-        setTitle(R.string.sleepMonitoring);
-        
-    	recording = false;
-    	recordBtn = (Button) findViewById(R.id.recordBtn);
-    	recOpts = (Spinner) findViewById(R.id.recordOptsSpinner);
-    	noiseScanIntervals = (Spinner) findViewById(R.id.noiseScanIntervalSpinner);
-    	noiseScanIntervals.setSelection(4);
-    	
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		thisActivity = activity;
+	}
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		recording = false;
+		View v = inflater.inflate(R.layout.fragment_sleepmonitoring, container, false);
+		
+		recordBtn = (Button) v.findViewById(R.id.recordBtn);
+		recordBtn.setOnClickListener(this);
+    	recOpts = (Spinner) v.findViewById(R.id.recordOptsSpinner);
     	prepareRecordOptionsSpinner();
-    }
+    	noiseScanIntervals = (Spinner) v.findViewById(R.id.noiseScanIntervalSpinner);
+    	noiseScanIntervals.setSelection(4);
+		
+    	
+		return v;
+	}
 
 	@Override
-	protected void onResume() {
+	public void onResume() {
 		super.onResume();
 		if(serviceIsRunning(RecordingService.class)) {
     		activateRecordingState();
@@ -78,22 +91,34 @@ public class SleepMonitoring extends Activity{
     	recOpts.setSelection(2);
 	}
 		
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.recordBtn:
+			onRecordButtonClicked(v);
+			break;
+		default:
+			break;
+		}
+		
+	}
+	
 	public void onRecordButtonClicked(View v)  {
 		if(!recording){
-			Intent starter = new Intent(this, RecordingService.class);
+			Intent starter = new Intent(thisActivity, RecordingService.class);
 			starter.putExtra("recordUserData", recordUserData);
 			starter.putExtra("recordToRecordFiles", recordToRecordFiles);
 			starter.putExtra("noiseScanInterval", getNoiseScanInterval());
 			starter.setAction(RecordingService.START_RECORDING_ACTION);
-			startService(starter);
+			thisActivity.startService(starter);
 			
 			activateRecordingState();
-			Toast.makeText(this, R.string.startedRecording, Toast.LENGTH_SHORT).show();
+			Toast.makeText(thisActivity, R.string.startedRecording, Toast.LENGTH_SHORT).show();
 		} else {
-			stopService(new Intent(this, RecordingService.class));
+			thisActivity.stopService(new Intent(thisActivity, RecordingService.class));
 
 			deactivateRecordingState();
-			Toast.makeText(this, R.string.stoppedRecording, Toast.LENGTH_SHORT).show();
+			Toast.makeText(thisActivity, R.string.stoppedRecording, Toast.LENGTH_SHORT).show();
 		}
     }
 	
@@ -113,7 +138,7 @@ public class SleepMonitoring extends Activity{
 	}
 	
 	private boolean serviceIsRunning(Class<?> serviceClass) {
-	  ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+	  ActivityManager manager = (ActivityManager) thisActivity.getSystemService(Context.ACTIVITY_SERVICE);
 	  for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
 	    if (serviceClass.getName().equals(service.service.getClassName())) {
 	        return true;
@@ -121,4 +146,5 @@ public class SleepMonitoring extends Activity{
 	  }
 	  return false;
 	}
+
 }
