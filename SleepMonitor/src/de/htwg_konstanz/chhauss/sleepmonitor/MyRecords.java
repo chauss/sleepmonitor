@@ -5,49 +5,64 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import android.app.ListActivity;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ListFragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 
 
-public class MyRecords extends ListActivity{
+public class MyRecords extends ListFragment {
 	
 	private File RECORD_DIR;
 	
+	private Activity thisActivity;
+	
 	
 	@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setTitle(R.string.myRecords);
-        
-        RECORD_DIR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
-        			  	 	 getString(R.string.app_directory) +
-        			  	 	 getString(R.string.record_directory));
-        
-        getListView().setOnItemClickListener(new OnItemClickListener() {
-        	
-			@Override
-			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-				Record record = (Record) parent.getItemAtPosition(position);
-				Intent intent = new Intent(parent.getContext(), RecordDetails.class);
-				intent.putExtra("record", record);
-				startActivity(intent);
-			}
-		});
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		thisActivity = activity;
+	}
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		View v = inflater.inflate(R.layout.fragment_myrecords, container, false);
+
+		RECORD_DIR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
+		  	 	 getString(R.string.app_directory) +
+		  	 	 getString(R.string.record_directory));
+		
+		return v;
 	}
 
 	@Override
-	protected void onResume() {
-		super.onResume();
+	public void onActivityCreated(Bundle savedInstanceState) {
+		getListView().setOnItemClickListener(new OnItemClickListener() {
+			
+				@Override
+				public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+					Record record = (Record) parent.getItemAtPosition(position);
+					Intent intent = new Intent(parent.getContext(), RecordDetails.class);
+					intent.putExtra("record", record);
+					startActivity(intent);
+				}
+			});
 		
+		refreshListAdapter();
+		super.onActivityCreated(savedInstanceState);
+	}
+
+	public void refreshListAdapter() {
 		Record[] records = getAllRecords();
 		
-		ArrayAdapter<Record> adapter = new ArrayAdapter<Record>(this,
+		ArrayAdapter<Record> adapter = new ArrayAdapter<Record>(thisActivity,
 																android.R.layout.simple_list_item_1,
 																records);
 		adapter.sort(new Comparator<Record>() {
@@ -60,12 +75,12 @@ public class MyRecords extends ListActivity{
 		});
 		setListAdapter(adapter);
 	}
-	
+
 	private Record[] getAllRecords() {
 		File[] files = getAllRecordFiles();
 		
 		// Get all record data from the database
-		DatabaseAdapter dba = new DatabaseAdapter(this);
+		DatabaseAdapter dba = new DatabaseAdapter(thisActivity);
 		ArrayList<String> recordIDs = dba.selectAllRecordIDs();
 		
 		ArrayList<Record> records = mergeFilesAndVolumeData(files, recordIDs);

@@ -2,24 +2,79 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 
 import java.io.File;
 
-import android.app.Activity;
-import android.content.Intent;
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
+import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.View;
-import android.widget.Toast;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity implements ActionBar.TabListener {
+	ActionBar actionBar;
+	ViewPager viewPager;
+	FragmentPageAdapter fpa;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
         createAppDirectory();
+        
+        viewPager = (ViewPager) findViewById(R.id.viewPager);
+        fpa = new FragmentPageAdapter(getSupportFragmentManager());
+        viewPager.setAdapter(fpa);
+        
+        actionBar = getActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        actionBar.addTab(actionBar.newTab().setText(R.string.sleepMonitoring).setTabListener(this));
+        actionBar.addTab(actionBar.newTab().setText(R.string.myRecords).setTabListener(this));
+        
+        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+			
+			@Override
+			public void onPageSelected(int itemID) {
+				actionBar.setSelectedNavigationItem(itemID);
+				
+			}
+			
+			@Override
+			public void onPageScrolled(int arg0, float arg1, int arg2) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onPageScrollStateChanged(int arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
     }
 
+	@Override
+	public void onTabSelected(Tab tab, FragmentTransaction ft) {
+		viewPager.setCurrentItem(tab.getPosition());
+		System.out.println("ontabselected");
+		refreshMyRecords();
+	}
+
+	@Override
+	public void onTabUnselected(Tab tab, FragmentTransaction ft) {}
+
+	@Override
+	public void onTabReselected(Tab tab, FragmentTransaction ft) {}
+	
+	private void refreshMyRecords() {
+		MyRecords myRecs = (MyRecords) getSupportFragmentManager().findFragmentById(R.id.myRecFrag);
+		System.out.println("myrecs: " + myRecs);
+		if(myRecs != null) {
+			System.out.println("refreshing");
+			myRecs.refreshListAdapter();
+		}
+	}
+	
 	private void createAppDirectory() {
 		String extStorageDir = Environment.getExternalStorageDirectory().getAbsolutePath();
 		File app_dir = new File(extStorageDir + getString(R.string.app_directory));
@@ -33,41 +88,5 @@ public class MainActivity extends Activity {
         if(!record_dir.exists()) {
         	record_dir.mkdir();
         }
-	}
-
-    public void onButtonClicked(View v) {
-    	switch(v.getId()) {
-    	case R.id.toSleepMonitoringBtn:
-    		startActivity(new Intent(this, SleepMonitoring.class));
-    		break;
-    	case R.id.toMyRecordsBtn:
-    		startActivity(new Intent(this, MyRecords.class));
-    		break;
-    	case R.id.resetDatabaseBtn:
-    		resetDataBase();
-    		break;
-    	case R.id.deleteAllRecordsBtn:
-    		deleteAllRecords();
-    		break;
-    	}
-    }
-
-    private void resetDataBase() {
-		DatabaseAdapter dba = new DatabaseAdapter(this);
-		dba.resetDatabase();
-		Toast.makeText(this, R.string.resetedDatabase, Toast.LENGTH_SHORT).show();
-	}
-    
-	private void deleteAllRecords() {
-		File RECORD_DIR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
-								   getString(R.string.app_directory) +
-								   getString(R.string.record_directory));
-		File[] files = RECORD_DIR.listFiles();
-		for(File file : files) {
-			file.delete();
-		}
-		Toast.makeText(this,
-				       String.format(getString(R.string.succRemovedAllRecordFiles), files.length),
-				       Toast.LENGTH_SHORT).show();
 	}
 }
