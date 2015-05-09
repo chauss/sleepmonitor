@@ -7,7 +7,10 @@ import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -127,5 +130,30 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		Toast.makeText(this,
 				       String.format(getString(R.string.succRemovedAllRecordFiles), files.length),
 				       Toast.LENGTH_SHORT).show();
+	}
+	
+	private class FragmentPageAdapter extends FragmentPagerAdapter {
+
+		public FragmentPageAdapter(FragmentManager fm) {
+			super(fm);
+		}
+
+		@Override
+		public Fragment getItem(int itemID) {
+			switch (itemID) {
+			case 0:
+				return new SleepMonitoring();
+			case 1:
+				return new MyRecords();
+			default:
+				return new SleepMonitoring();
+			}
+		}
+
+		@Override
+		public int getCount() {
+			return 2;
+		}
+
 	}
 }
