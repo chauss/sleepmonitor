@@ -6,28 +6,23 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ListFragment;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
 
-public class MyRecords extends ListFragment implements SwipeRefreshLayout.OnRefreshListener {
+public class MyRecords extends ListFragment {
 	
 	private File RECORD_DIR;
 	
 	private Activity thisActivity;
-    private SwipeRefreshLayout mSwipeRefreshLayout; 
 	
 	
 	@Override
@@ -42,13 +37,7 @@ public class MyRecords extends ListFragment implements SwipeRefreshLayout.OnRefr
 				getString(R.string.app_directory) +
 				getString(R.string.record_directory));
 		View v = inflater.inflate(R.layout.fragment_myrecords, container, false);
-		
-        mSwipeRefreshLayout = new ListFragmentSwipeRefreshLayout(container.getContext());
-        mSwipeRefreshLayout.addView(v, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        mSwipeRefreshLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-        															   ViewGroup.LayoutParams.MATCH_PARENT));
-        mSwipeRefreshLayout.setOnRefreshListener(this);
-		return mSwipeRefreshLayout;
+		return v;
 	}
 	
 	@Override
@@ -143,53 +132,4 @@ public class MyRecords extends ListFragment implements SwipeRefreshLayout.OnRefr
         }
         return filename.substring(0, pos);
     }
-	
-	private class ListFragmentSwipeRefreshLayout extends SwipeRefreshLayout {
-		 
-        public ListFragmentSwipeRefreshLayout(Context context) {
-            super(context);
-        }
- 
-        /**
-         * As mentioned above, we need to override this method to properly signal when a
-         * 'swipe-to-refresh' is possible.
-         *
-         * @return true if the {@link android.widget.ListView} is visible and can scroll up.
-         */
-        @Override
-        public boolean canChildScrollUp() {
-            final ListView listView = getListView();
-            if (listView.getVisibility() == View.VISIBLE) {
-                return canListViewScrollUp(listView);
-            } else {
-                return false;
-            }
-        }
- 
-    }
- 
-    /**
-     * Utility method to check whether a {@link ListView} can scroll up from it's current position.
-     * Handles platform version differences, providing backwards compatible functionality where
-     * needed.
-     */
-    private static boolean canListViewScrollUp(ListView listView) {
-        if (android.os.Build.VERSION.SDK_INT >= 14) {
-            // For ICS and above we can call canScrollVertically() to determine this
-            return ViewCompat.canScrollVertically(listView, -1);
-        } else {
-            // Pre-ICS we need to manually check the first visible item and the child view's top
-            // value
-            return listView.getChildCount() > 0 &&
-                    (listView.getFirstVisiblePosition() > 0
-                            || listView.getChildAt(0).getTop() < listView.getPaddingTop());
-        }
-    }
-
-	@Override
-	public void onRefresh() {
-		refreshListAdapter();
-        mSwipeRefreshLayout.setRefreshing(false);
-	}
-
 }

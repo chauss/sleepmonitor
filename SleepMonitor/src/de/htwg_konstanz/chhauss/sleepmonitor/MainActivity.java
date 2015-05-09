@@ -21,6 +21,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	ActionBar actionBar;
 	ViewPager viewPager;
 	FragmentPageAdapter fpa;
+	SleepMonitoring sm;
+	MyRecords rm;
 	
 	private int group1Id = 1;
 
@@ -70,26 +72,20 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 			@Override
 			public void onPageSelected(int itemID) {
 				actionBar.setSelectedNavigationItem(itemID);
-				
 			}
-			
 			@Override
-			public void onPageScrolled(int arg0, float arg1, int arg2) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+			public void onPageScrolled(int arg0, float arg1, int arg2) {}
 			@Override
-			public void onPageScrollStateChanged(int arg0) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void onPageScrollStateChanged(int arg0) {}
 		});
     }
 
 	@Override
 	public void onTabSelected(Tab tab, FragmentTransaction ft) {
 		viewPager.setCurrentItem(tab.getPosition());
+		if(rm != null) {
+			rm.refreshListAdapter();
+		}
 	}
 
 	@Override
@@ -116,6 +112,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	private void resetDatabase() {
 		DatabaseAdapter dba = new DatabaseAdapter(this);
 		dba.resetDatabase();
+		if(rm != null) {
+			rm.refreshListAdapter();
+		}
 		Toast.makeText(this, R.string.resetedDatabase, Toast.LENGTH_SHORT).show();
 	}
     
@@ -126,6 +125,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		File[] files = RECORD_DIR.listFiles();
 		for(File file : files) {
 			file.delete();
+		}
+		if(rm != null) {
+			rm.refreshListAdapter();
 		}
 		Toast.makeText(this,
 				       String.format(getString(R.string.succRemovedAllRecordFiles), files.length),
@@ -142,11 +144,14 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		public Fragment getItem(int itemID) {
 			switch (itemID) {
 			case 0:
-				return new SleepMonitoring();
+				sm = new SleepMonitoring();
+				return sm;
 			case 1:
-				return new MyRecords();
+				rm = new MyRecords();
+				return rm;
 			default:
-				return new SleepMonitoring();
+				sm = new SleepMonitoring();
+				return sm;
 			}
 		}
 
