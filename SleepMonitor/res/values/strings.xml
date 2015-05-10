@@ -56,5 +56,7 @@
         <string name="pause">Pause</string>
         <string name="noiseMeter">Noise Meter</string>
         <string name="noRecords">There are no records</string>
+        <string name="deleteRecord">Delete Record</string>
+        <string name="deleteUserData">Delete User Data</string>
 
 </resources>

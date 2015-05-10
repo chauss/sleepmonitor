@@ -13,6 +13,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -36,6 +37,8 @@ public class RecordDetails extends Activity {
 	private Button playPauseRecordBtn;
 	private Button stopRecordBtn;
 	private Button showLineChartBtn;
+	private Button deleteRecordBtn;
+	private Button deleteUserDataBtn;
 	private Record record;
 	private SeekBar recSeekBar;
 	private SeekBarProgress seekBarProgress;
@@ -59,16 +62,20 @@ public class RecordDetails extends Activity {
 		
 		playPauseRecordBtn = (Button) findViewById(R.id.playPauseRecordBtn);
 		stopRecordBtn = (Button) findViewById(R.id.stopRecordBtn);
+		deleteRecordBtn = (Button) findViewById(R.id.deleteRecordBtn);
+		deleteUserDataBtn = (Button) findViewById(R.id.deleteUserDataBtn);
 		
 		showLineChartBtn = (Button) findViewById(R.id.showLineChartBtn);
 		
 		if(record.getPath() == null) {
 			playPauseRecordBtn.setEnabled(false);
 			stopRecordBtn.setEnabled(false);
+			deleteRecordBtn.setEnabled(false);
 		}
 		if(record.getID() == null) {
 			showLineChartBtn.setEnabled(false);
 			showLineChartBtn.setText(R.string.noVolumeDataFound);
+			deleteUserDataBtn.setEnabled(false);
 		}
 	}
 	
@@ -157,14 +164,18 @@ public class RecordDetails extends Activity {
 			durationTV.setText(getString(R.string.recrodFileDuration)
 							   .replace("%DURATION", String.format("%.2f", duration) + SECONDS_ENDING));
 		} else {
-			TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
-			sizeTV.setText(getString(R.string.recordFileSize)
-					       .replace("%SIZE", getString(R.string.notAvailable)));
-			
-			TextView durationTV = (TextView) findViewById(R.id.recordFileDurationTV);
-			durationTV.setText(getString(R.string.recrodFileDuration)
-							   .replace("%DURATION", getString(R.string.notAvailable)));
+			setRecordDetailsNotAvailable();
 		}
+	}
+
+	private void setRecordDetailsNotAvailable() {
+		TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
+		sizeTV.setText(getString(R.string.recordFileSize)
+				       .replace("%SIZE", getString(R.string.notAvailable)));
+		
+		TextView durationTV = (TextView) findViewById(R.id.recordFileDurationTV);
+		durationTV.setText(getString(R.string.recrodFileDuration)
+						   .replace("%DURATION", getString(R.string.notAvailable)));
 	}
 
 	public void onButtonClicked(View v) {
@@ -182,6 +193,54 @@ public class RecordDetails extends Activity {
 		case R.id.showLineChartBtn:
 			showLineChartForRecord();
 			break;
+		case R.id.deleteRecordBtn:
+			deleteRecord();
+			break;
+		case R.id.deleteUserDataBtn:
+			deleteUserData();
+			break;
+		}
+	}
+
+	private void deleteUserData() {
+		DatabaseAdapter dba = new DatabaseAdapter(this);
+		dba.deleteRecordDataByID(record.getID());
+
+		if(record.getPath() == null) {
+			Intent i = new Intent(this, MainActivity.class);
+			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			startActivity(i);
+		} else {
+			showLineChartBtn.setEnabled(false);
+			showLineChartBtn.setText(R.string.noVolumeDataFound);
+			deleteUserDataBtn.setEnabled(false);
+			record.deleteRecordID();
+		}
+	}
+
+	private void deleteRecord() {
+		File RECORD_DIR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() +
+			   					   getString(R.string.app_directory) +
+		   					   	   getString(R.string.record_directory));
+		File[] files = RECORD_DIR.listFiles();
+		for(File file : files) {
+			if(file.getName().compareTo((record.getName() + getString(R.string.record_file_ending))) == 0) {
+				file.delete();
+				break;
+			}
+		}
+		if(record.getID() == null) {
+			Intent i = new Intent(this, MainActivity.class);
+			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			startActivity(i);
+		} else {
+			playPauseRecordBtn.setEnabled(false);
+			stopRecordBtn.setEnabled(false);
+			deleteRecordBtn.setEnabled(false);
+			record.deleteRecordPath();
+			setRecordDetailsNotAvailable();
+			recSeekBar.setEnabled(false);
+			stopPlayback();
 		}
 	}
 

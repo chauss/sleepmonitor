@@ -81,10 +81,22 @@
         android:onClick="onButtonClicked"
         android:text="@string/showLineChart" />
 
-    <MediaController
-        android:id="@+id/recordMediaController"
+    <Button
+        android:id="@+id/deleteRecordBtn"
+        style="?android:attr/buttonStyleSmall"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-    </MediaController>
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:onClick="onButtonClicked"
+        android:text="@string/deleteRecord" />
+
+    <Button
+        android:id="@+id/deleteUserDataBtn"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:onClick="onButtonClicked"
+        android:text="@string/deleteUserData" />
 
 </LinearLayout>

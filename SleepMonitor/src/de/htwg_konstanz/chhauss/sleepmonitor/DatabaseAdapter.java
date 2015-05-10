@@ -27,9 +27,8 @@ public class DatabaseAdapter {
 	}
 	
 	public long insertVolume(String dateAndTime, int volume, String recordID) {
-		if(db == null || !db.isOpen()){
-			db = dbHelper.getWritableDatabase();
-		}
+		openDatabase();
+		
 		ContentValues cv = new ContentValues();
 		cv.put(DatabaseHelper.DATEANDTIME, dateAndTime);
 		cv.put(DatabaseHelper.VOLUME, volume);
@@ -40,9 +39,8 @@ public class DatabaseAdapter {
 	}
 	
 	public long insertAccelerometerValues(String dateAndTime, double x, double y, double z, String recordID) {
-        if(db == null || !db.isOpen()){
-            db = dbHelper.getWritableDatabase();
-        }
+		openDatabase();
+		
         ContentValues cv = new ContentValues();
         cv.put(DatabaseHelper.DATEANDTIME, dateAndTime);
         cv.put(DatabaseHelper.ACC_X, x);
@@ -53,6 +51,14 @@ public class DatabaseAdapter {
         
         return id;
     }
+	
+	public int deleteRecordDataByID(String recordID) {
+		openDatabase();
+		int count = db.delete(DatabaseHelper.TABLE_SLEEPVOLUME, DatabaseHelper.RECORD_ID + "=?", new String[] {recordID});
+		count += db.delete(DatabaseHelper.TABLE_ACCELEROMETER, DatabaseHelper.RECORD_ID + "=?", new String[] {recordID});
+		closeDatabase();
+		return count;
+	}
 	
 	public HashMap<Date, Integer> selectAllVolumeByRecordID(String recordID) {
 		openDatabase();
@@ -168,6 +174,7 @@ public class DatabaseAdapter {
 	public void resetDatabase() {
 		openDatabase();
 		db.delete(DatabaseHelper.TABLE_SLEEPVOLUME, null, null);
+		db.delete(DatabaseHelper.TABLE_ACCELEROMETER, null, null);
 	}
 	
 	static class DatabaseHelper extends SQLiteOpenHelper{
@@ -213,6 +220,7 @@ public class DatabaseAdapter {
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			db.execSQL("DROP TABLE IF EXISTS " + TABLE_SLEEPVOLUME);
+			db.execSQL("DROP TABLE IF EXISTS " + TABLE_ACCELEROMETER);
 			onCreate(db);
 		}
 	}

@@ -44,6 +44,20 @@ public class Record implements Parcelable{
 		return name;
 	}
 	
+	public void deleteRecordID() {
+		if(this.recordPath == null) {
+			throw new IllegalStateException("Can't delete recordID when the record has no recordPath!");
+		}
+		this.recordID = null;
+	}
+	
+	public void deleteRecordPath() {
+		if(this.recordID == null) {
+			throw new IllegalStateException("Can't delete recordPath when the record has no recordID!");
+		}
+		this.recordPath = null;
+	}
+	
 	@Override
 	public String toString() {
 		SimpleDateFormat toResultFormatter = new SimpleDateFormat(toStringPattern, Locale.getDefault());

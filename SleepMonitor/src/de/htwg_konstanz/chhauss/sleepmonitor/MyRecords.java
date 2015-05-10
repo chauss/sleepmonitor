@@ -53,8 +53,13 @@ public class MyRecords extends ListFragment {
 				}
 			});
 		
-		refreshListAdapter();
 		super.onActivityCreated(savedInstanceState);
+	}
+
+	@Override
+	public void onResume() {
+		refreshListAdapter();
+		super.onResume();
 	}
 
 	public void refreshListAdapter() {
