@@ -26,7 +26,7 @@
     <string name="resetedDatabase">Database Has Been Reseted</string>
     
     <string-array name="recordingOptions">
-        <item>User Data(Movement + Sound)</item>
+        <item>User Data (Movement + Sound)</item>
         <item>Audio File</item>
         <item>User Data And Audio File</item>
     </string-array>
@@ -49,10 +49,8 @@
         <string name="recordFileSize">Size: %SIZE</string>
         <string name="recrodFileDuration">Duration: %DURATION</string>
         <string name="notAvailable">Not Available</string>
-        <string name="recordIntervalHard">Noise scan interval (in s):</string>
+        <string name="recordIntervalHard">Data scan interval (in s):</string>
         <string name="currentPositionStartValue">0:0:0</string>
-        <string name="rewind">RR</string>
-        <string name="fastForward">FF</string>
         <string name="pause">Pause</string>
         <string name="noiseMeter">Noise Meter</string>
         <string name="noRecords">There are no records</string>
