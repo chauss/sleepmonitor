@@ -42,7 +42,7 @@ public class LineChart {
 		// Series for acc data
 		TimeSeries acc_series = new TimeSeries("Accelerometer");
         for (Map.Entry<Date, Double> entry : acc_data.entrySet()) {
-            acc_series.add(entry.getKey(), max(0, ((entry.getValue() - 9.81 ) * 1000)));
+            acc_series.add(entry.getKey(), max(0, ((entry.getValue() - 10.41 ) * 1000)));
         }
 		
 	    XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
