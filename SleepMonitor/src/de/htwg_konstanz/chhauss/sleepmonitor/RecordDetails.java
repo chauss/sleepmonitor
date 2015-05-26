@@ -176,7 +176,7 @@ public class RecordDetails extends Activity {
 		
 		int hours = (int) ((duration / MILISEC_TO_HOURS) % HOURS_PER_DAY);
 		int min = (int) ((duration / MILISEC_TO_MIN) % MIN_PER_HOUR);
-        int sec = (int) (duration  % SEC_PER_MIN);
+        int sec = (int) ((duration  / MILISEC_TO_SEC)  % SEC_PER_MIN);
         
         if(hours != 0) {
         	result = String.format(Locale.GERMAN, "%d,%d" + HOURS_ENDING, hours, min);
