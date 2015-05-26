@@ -3,6 +3,7 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -171,19 +172,21 @@ public class RecordDetails extends Activity {
 	}
 
 	private String getFileDuration(double duration) {
-		duration = duration / MILISEC_TO_SEC;
-		String unit = SECONDS_ENDING;
+		String result = "";
 		
-		if(duration > SEC_PER_MIN) {
-			duration = duration / SEC_PER_MIN;
-			unit = MINUTES_ENDING;
-		}
-		if(duration > MIN_PER_HOUR) {
-			duration = duration / MIN_PER_HOUR;
-			unit = HOURS_ENDING;
-		}
+		int hours = (int) ((duration / MILISEC_TO_HOURS) % HOURS_PER_DAY);
+		int min = (int) ((duration / MILISEC_TO_MIN) % MIN_PER_HOUR);
+        int sec = (int) (duration  % SEC_PER_MIN);
+        
+        if(hours != 0) {
+        	result = String.format(Locale.GERMAN, "%d,%d" + HOURS_ENDING, hours, min);
+        } else if(min != 0) {
+        	result = String.format(Locale.GERMAN, "%d,%d" + MINUTES_ENDING, min, sec);
+        } else {
+        	result = String.format(Locale.GERMAN, "%d" + SECONDS_ENDING, sec);
+        }
 		
-		return String.format("%.2f" + unit, duration);
+		return result;
 	}
 
 	private String getFileSize(double size) {
