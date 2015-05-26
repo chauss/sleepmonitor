@@ -22,7 +22,7 @@ import android.widget.TextView;
 
 public class RecordDetails extends Activity {
 	
-	private static final int BYTES_TO_KILOBYTES = 1024;
+	private static final int BYTES_UNIT = 1024;
 	private static final int MILISEC_TO_SEC = 1000;
 	private static final int SEC_PER_MIN = 60;
 	private static final int MILISEC_TO_MIN = 60 * 1000;
@@ -31,7 +31,10 @@ public class RecordDetails extends Activity {
 	private static final int HOURS_PER_DAY = 24;
 	private static final int SLEEP_BETWEEN_SEEKBAR_UPDATE = 500; //ms
 	private static final String KILOBYTE_ENDING = " KB";
+	private static final String MEGABYTE_ENDING = " MB";
 	private static final String SECONDS_ENDING = " s";
+	private static final String MINUTES_ENDING = " m";
+	private static final String HOURS_ENDING = " h";
 
 	private MediaPlayer mediaPlayer;
 	private Button playPauseRecordBtn;
@@ -152,20 +155,47 @@ public class RecordDetails extends Activity {
 	private void setRecordFileData() {
 		if(record.getPath() != null) {
 			File file = new File(record.getPath());
-			double size = (double) file.length() / BYTES_TO_KILOBYTES;
-			
-			double duration = (double) mediaPlayer.getDuration() / MILISEC_TO_SEC;
+			String fileSize = getFileSize((double) file.length());
+			String duration = getFileDuration((double) mediaPlayer.getDuration());
 			
 			TextView sizeTV = (TextView) findViewById(R.id.recordFileSizeTV);
 			sizeTV.setText(getString(R.string.recordFileSize)
-					       .replace("%SIZE", String.format("%.2f", size) + KILOBYTE_ENDING));
+					       .replace("%SIZE", fileSize));
 			
 			TextView durationTV = (TextView) findViewById(R.id.recordFileDurationTV);
 			durationTV.setText(getString(R.string.recrodFileDuration)
-							   .replace("%DURATION", String.format("%.2f", duration) + SECONDS_ENDING));
+							   .replace("%DURATION", duration));
 		} else {
 			setRecordDetailsNotAvailable();
 		}
+	}
+
+	private String getFileDuration(double duration) {
+		duration = duration / MILISEC_TO_SEC;
+		String unit = SECONDS_ENDING;
+		
+		if(duration > SEC_PER_MIN) {
+			duration = duration / SEC_PER_MIN;
+			unit = MINUTES_ENDING;
+		}
+		if(duration > MIN_PER_HOUR) {
+			duration = duration / MIN_PER_HOUR;
+			unit = HOURS_ENDING;
+		}
+		
+		return String.format("%.2f" + unit, duration);
+	}
+
+	private String getFileSize(double size) {
+		size = size / BYTES_UNIT;
+		String unit = KILOBYTE_ENDING;
+		
+		if(size > BYTES_UNIT) {
+			size = size / BYTES_UNIT;
+			unit = MEGABYTE_ENDING;
+		}
+		
+		return String.format("%.2f" + unit, size);
 	}
 
 	private void setRecordDetailsNotAvailable() {
