@@ -18,6 +18,7 @@
     <string name="title_activity_record_details">RecordDetails</string>
     <string name="emptyString"></string>
     <string name="showLineChart">Show Line Chart</string>
+    <string name="alarmClock">Alarm Clock</string>
     <string name="noRecordFileFound">No Record Found</string>
     <string name="noVolumeDataFound">No Volume Data found</string>
     <string name="resetDatabase">Reset Database</string>

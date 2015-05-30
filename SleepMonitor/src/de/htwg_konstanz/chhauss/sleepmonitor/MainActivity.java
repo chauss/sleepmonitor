@@ -21,6 +21,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	ActionBar actionBar;
 	ViewPager viewPager;
 	FragmentPageAdapter fpa;
+	AlarmClock ac;
 	SleepMonitoring sm;
 	MyRecords rm;
 	
@@ -64,6 +65,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         
         actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        actionBar.addTab(actionBar.newTab().setText(R.string.alarmClock).setTabListener(this));
         actionBar.addTab(actionBar.newTab().setText(R.string.sleepMonitoring).setTabListener(this));
         actionBar.addTab(actionBar.newTab().setText(R.string.myRecords).setTabListener(this));
         
@@ -144,9 +146,12 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		public Fragment getItem(int itemID) {
 			switch (itemID) {
 			case 0:
+				ac = new AlarmClock();
+				return ac;
+			case 1:
 				sm = new SleepMonitoring();
 				return sm;
-			case 1:
+			case 2:
 				rm = new MyRecords();
 				return rm;
 			default:
@@ -157,7 +162,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
 		@Override
 		public int getCount() {
-			return 2;
+			return 3;
 		}
 
 	}

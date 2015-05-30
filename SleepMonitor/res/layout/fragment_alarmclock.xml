@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/TableLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:stretchColumns="*" >
+
+    <TableRow
+        android:layout_marginTop="10dp"
+        android:layout_weight="1" >
+         
+	    <NumberPicker
+	        android:id="@+id/start_hourNP"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content" />
+	         
+		<NumberPicker
+		    android:id="@+id/start_minuteNP"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content" />
+
+	</TableRow>
+	
+    <TableRow
+        android:layout_marginTop="10dp"
+        android:layout_weight="1" >
+         
+	    <NumberPicker
+	        android:id="@+id/end_hourNP"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content" />
+	         
+		<NumberPicker
+		    android:id="@+id/end_minuteNP"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content" />
+
+	</TableRow>
+
+    
+    <TableRow 
+        android:layout_weight="1"
+        android:layout_marginTop="10dp" >
+		
+	    <TextView
+	        android:id="@+id/alarmIntervalTV"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/emptyString"
+	        android:layout_span="2"
+	        android:gravity="center_vertical|center_horizontal"
+	        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    </TableRow>
+    
+    <TableRow 
+        android:layout_weight="1"
+        android:layout_marginTop="10dp" >
+        
+	    <ToggleButton
+	        android:id="@+id/toggleButton1"
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_span="2"
+	        android:textOff="Off"
+	        android:textOn="On" />
+
+    </TableRow>
+     
+</TableLayout>

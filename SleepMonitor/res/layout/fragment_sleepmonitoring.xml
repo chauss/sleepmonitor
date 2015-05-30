@@ -11,10 +11,11 @@
     tools:context="de.htwg_konstanz.chhauss.sleepmonitor.SleepMonitoring" >
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/alarmStatusTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/whatToRecord"
+        android:layout_marginTop="10dp"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Spinner
@@ -28,6 +29,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/recordIntervalHard"
+        android:layout_marginTop="10dp"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Spinner
@@ -41,11 +43,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="fill_horizontal"
+        android:layout_marginTop="20dp"
         android:text="@string/startRecording" />
 
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="fill_vertical" />
 
 </LinearLayout>
