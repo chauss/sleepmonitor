@@ -1,6 +1,10 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import android.app.Activity;
+import android.graphics.Paint.Join;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,6 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
+
+import org.joda.time.DateTime;
+import org.joda.time.Instant;
+import org.joda.time.Interval;
+
 import android.widget.TextView;
 
 public class AlarmClock extends Fragment implements OnValueChangeListener {
@@ -40,16 +49,29 @@ public class AlarmClock extends Fragment implements OnValueChangeListener {
 		startMinuteNP = (NumberPicker) v.findViewById(R.id.start_minuteNP);
 		endHourNP = (NumberPicker) v.findViewById(R.id.end_hourNP);
 		endMinuteNP = (NumberPicker) v.findViewById(R.id.end_minuteNP);
-		
 		alarmIntervalTV = (TextView) v.findViewById(R.id.alarmIntervalTV);
 		
 		initNumberPickers();
-		
-		alarmIntervalTV.setText(String.format("Interval: %d:%02d - %d:%02d", startHour, startMinute, endHour, endMinute));
+		updateAlarmIntervalTV();
 		
 		return v;
 	}
-
+	
+	private void updateAlarmIntervalTV() {
+		DateTime start = new DateTime().withHourOfDay(startHour).withMinuteOfHour(startMinute);
+		DateTime end = new DateTime().withHourOfDay(endHour).withMinuteOfHour(endMinute);
+		
+		if(end.isBefore(start)) {
+			end = end.plusDays(1);
+		}
+		
+		Interval diff = new Interval(start, end);
+		
+		alarmIntervalTV.setText(String.format("Interval: %d:%02d - %d:%02d (%dh %dmin)",
+										      startHour, startMinute, endHour, endMinute,
+										      diff.toPeriod().getHours(), diff.toPeriod().getMinutes()));
+	}
+	
 	private void initNumberPickers() {
 		startHourNP.setMinValue(0);
 		startHourNP.setMaxValue(23);
@@ -84,6 +106,6 @@ public class AlarmClock extends Fragment implements OnValueChangeListener {
 		} else if(picker == endMinuteNP) {
 			endMinute = newVal;
 		}
-		alarmIntervalTV.setText(String.format("Interval: %d:%02d - %d:%02d", startHour, startMinute, endHour, endMinute));
+		updateAlarmIntervalTV();
 	}
 }

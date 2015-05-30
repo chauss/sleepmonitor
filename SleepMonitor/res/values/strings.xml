@@ -57,5 +57,7 @@
         <string name="noRecords">There are no records</string>
         <string name="deleteRecord">Delete Record</string>
         <string name="deleteUserData">Delete User Data</string>
+        <string name="fromInterval">Between:</string>
+        <string name="toInterval">and:</string>
 
 </resources>
