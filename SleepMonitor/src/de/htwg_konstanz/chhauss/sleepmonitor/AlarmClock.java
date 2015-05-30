@@ -23,7 +23,11 @@ import android.widget.ToggleButton;
 
 public class AlarmClock extends Fragment implements OnValueChangeListener, OnClickListener {
 
-	private static final String ALARMSTATE_KEY = "alarmstate_sp_key"; 
+	private static final String ALARMSTATE_KEY = "alarmstate_sp_key";
+	private static final String ALARM_STARTHOUR_KEY = "alarm_starthour_sp_key";
+	private static final String ALARM_STARTMIN_KEY = "alarm_startmin_sp_key";
+	private static final String ALARM_ENDHOUR_KEY = "alarm_endhour_sp_key";
+	private static final String ALARM_ENDMIN_KEY = "alarm_endmin_sp_key";
 	
 	private NumberPicker startHourNP;
 	private NumberPicker startMinuteNP;
@@ -67,6 +71,10 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	private void saveAlarmState(boolean state) {
 		SharedPreferences.Editor spEditor = thisActivity.getPreferences(Context.MODE_PRIVATE).edit();
 		spEditor.putBoolean(ALARMSTATE_KEY, state);
+		spEditor.putInt(ALARM_STARTHOUR_KEY, startHour);
+		spEditor.putInt(ALARM_STARTMIN_KEY, startMinute);
+		spEditor.putInt(ALARM_ENDHOUR_KEY, endHour);
+		spEditor.putInt(ALARM_ENDMIN_KEY, endMinute);
 		spEditor.commit();
 	}
 	
