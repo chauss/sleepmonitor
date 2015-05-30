@@ -85,17 +85,13 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	
 	private void startAlarm() {
 		AlarmManager am = (AlarmManager) thisActivity.getSystemService(Context.ALARM_SERVICE);
-		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 50000,
+		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 3000,
 				        AlarmManager.INTERVAL_DAY, getAlarmPendingIntent());
-		
-		Toast.makeText(thisActivity, "Alarm goes of in 50 seconds", Toast.LENGTH_SHORT).show();
 	}
 	
 	private void cancelAlarm() {
 		AlarmManager am = (AlarmManager) thisActivity.getSystemService(Context.ALARM_SERVICE);
 		am.cancel(getAlarmPendingIntent());
-		
-		Toast.makeText(thisActivity, "Alarm canceled", Toast.LENGTH_SHORT).show();
 	}
 	
 	@Override
@@ -104,10 +100,12 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 			startAlarm();
 			enableAlarmTimeChange(false);
 			saveAlarmState(true);
+			Toast.makeText(thisActivity, "Created daily alarm", Toast.LENGTH_SHORT).show();
 		} else {
 			cancelAlarm();
 			enableAlarmTimeChange(true);
 			saveAlarmState(false);
+			Toast.makeText(thisActivity, "Daily alarm canceled", Toast.LENGTH_SHORT).show();
 		}
 	}
 
