@@ -8,6 +8,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -22,6 +23,8 @@ import android.widget.ToggleButton;
 
 public class AlarmClock extends Fragment implements OnValueChangeListener, OnClickListener {
 
+	private static final String ALARMSTATE_KEY = "alarmstate_sp_key"; 
+	
 	private NumberPicker startHourNP;
 	private NumberPicker startMinuteNP;
 	private NumberPicker endHourNP;
@@ -40,6 +43,7 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		thisActivity = activity;
+		
 	}
 	
 	@Override
@@ -60,11 +64,31 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 		return v;
 	}
 	
+	private void saveAlarmState(boolean state) {
+		SharedPreferences.Editor spEditor = thisActivity.getPreferences(Context.MODE_PRIVATE).edit();
+		spEditor.putBoolean(ALARMSTATE_KEY, state);
+		spEditor.commit();
+	}
+	
+	private boolean getAlarmState() {
+		SharedPreferences sp = thisActivity.getPreferences(Context.MODE_PRIVATE);
+		return sp.getBoolean(ALARMSTATE_KEY, false);
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		boolean alarmState = getAlarmState();
+		enableAlarmTimeChange(!alarmState);
+		alarmOnOffBtn.setChecked(alarmState);
+	}
+	
 	private void startAlarm() {
 		AlarmManager am = (AlarmManager) thisActivity.getSystemService(Context.ALARM_SERVICE);
-		am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, getAlarmPendingIntent());
+		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 50000,
+				        AlarmManager.INTERVAL_DAY, getAlarmPendingIntent());
 		
-		Toast.makeText(thisActivity, "Alarm goes of in 5 seconds", Toast.LENGTH_SHORT).show();
+		Toast.makeText(thisActivity, "Alarm goes of in 50 seconds", Toast.LENGTH_SHORT).show();
 	}
 	
 	private void cancelAlarm() {
@@ -79,9 +103,11 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 		if(alarmOnOffBtn.isChecked()) {
 			startAlarm();
 			enableAlarmTimeChange(false);
+			saveAlarmState(true);
 		} else {
 			cancelAlarm();
 			enableAlarmTimeChange(true);
+			saveAlarmState(false);
 		}
 	}
 

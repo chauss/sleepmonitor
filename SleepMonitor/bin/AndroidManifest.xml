@@ -19,22 +19,20 @@
         android:theme="@android:style/Theme.Holo" >
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SleepMonitoring" >
-        </activity>
-        <activity android:name=".MyRecords" >
-        </activity>
         <activity android:name=".AlarmReceiver" >
         </activity>
         <activity android:name="org.achartengine.GraphicalActivity" />
         <activity
             android:name=".RecordDetails"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_record_details" >
         </activity>
         <service android:name="RecordingService"></service>

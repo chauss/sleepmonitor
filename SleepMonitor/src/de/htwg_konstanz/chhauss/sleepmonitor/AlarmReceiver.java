@@ -16,8 +16,6 @@ import android.view.Window;
 import android.view.WindowManager;
 
 public class AlarmReceiver extends Activity {
-	private static String TAG = "AlarmReceiver";
-
 	private MediaPlayer mediaPlayer;
 	private PowerManager.WakeLock wakeLock;
 	
@@ -28,10 +26,8 @@ public class AlarmReceiver extends Activity {
         wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "SleepMonitor_AlarmReceiver_WakeLock");
         wakeLock.acquire();
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN |
-        						  WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
         						  WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON,
-        						  WindowManager.LayoutParams.FLAG_FULLSCREEN |
         						  WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
         						  WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         setContentView(R.layout.activity_alarmreceiver);
@@ -73,7 +69,9 @@ public class AlarmReceiver extends Activity {
 	@Override
 	protected void onStop() {
 		super.onStop();
-		wakeLock.release();
+		if(wakeLock.isHeld()) {
+			wakeLock.release();
+		}
 	}
 
 }
