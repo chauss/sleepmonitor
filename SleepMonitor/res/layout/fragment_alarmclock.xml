@@ -31,8 +31,8 @@
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:layout_span="4"
-	        android:textOff="Off"
-	        android:textOn="On" />
+	        android:textOff="@string/off"
+	        android:textOn="@string/on" />
 	    
 	</TableRow>
 	

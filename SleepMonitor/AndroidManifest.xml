@@ -10,6 +10,7 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -28,6 +29,8 @@
         <activity android:name=".SleepMonitoring" >
         </activity>
         <activity android:name=".MyRecords" >
+        </activity>
+        <activity android:name=".AlarmReceiver" >
         </activity>
         <activity android:name="org.achartengine.GraphicalActivity" />
         <activity

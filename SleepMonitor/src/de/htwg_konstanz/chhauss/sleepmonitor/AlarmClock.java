@@ -1,31 +1,32 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 import android.app.Activity;
-import android.graphics.Paint.Join;
-import android.support.v4.app.Fragment;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
-
-import org.joda.time.DateTime;
-import org.joda.time.Instant;
-import org.joda.time.Interval;
-
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
-public class AlarmClock extends Fragment implements OnValueChangeListener {
+public class AlarmClock extends Fragment implements OnValueChangeListener, OnClickListener {
 
 	private NumberPicker startHourNP;
 	private NumberPicker startMinuteNP;
 	private NumberPicker endHourNP;
 	private NumberPicker endMinuteNP;
-	
+	private ToggleButton alarmOnOffBtn;
 	private TextView alarmIntervalTV;
 	
 	private int startHour = 7;
@@ -50,11 +51,50 @@ public class AlarmClock extends Fragment implements OnValueChangeListener {
 		endHourNP = (NumberPicker) v.findViewById(R.id.end_hourNP);
 		endMinuteNP = (NumberPicker) v.findViewById(R.id.end_minuteNP);
 		alarmIntervalTV = (TextView) v.findViewById(R.id.alarmIntervalTV);
+		alarmOnOffBtn = (ToggleButton) v.findViewById(R.id.alarmOnOffBtn);
+		alarmOnOffBtn.setOnClickListener(this);
 		
 		initNumberPickers();
 		updateAlarmIntervalTV();
 		
 		return v;
+	}
+	
+	private void startAlarm() {
+		AlarmManager am = (AlarmManager) thisActivity.getSystemService(Context.ALARM_SERVICE);
+		am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, getAlarmPendingIntent());
+		
+		Toast.makeText(thisActivity, "Alarm goes of in 5 seconds", Toast.LENGTH_SHORT).show();
+	}
+	
+	private void cancelAlarm() {
+		AlarmManager am = (AlarmManager) thisActivity.getSystemService(Context.ALARM_SERVICE);
+		am.cancel(getAlarmPendingIntent());
+		
+		Toast.makeText(thisActivity, "Alarm canceled", Toast.LENGTH_SHORT).show();
+	}
+	
+	@Override
+	public void onClick(View v) {
+		if(alarmOnOffBtn.isChecked()) {
+			startAlarm();
+			enableAlarmTimeChange(false);
+		} else {
+			cancelAlarm();
+			enableAlarmTimeChange(true);
+		}
+	}
+
+	private void enableAlarmTimeChange(boolean enabled) {
+		startHourNP.setEnabled(enabled);
+		startMinuteNP.setEnabled(enabled);
+		endHourNP.setEnabled(enabled);
+		endMinuteNP.setEnabled(enabled);
+	}
+	
+	private PendingIntent getAlarmPendingIntent() {
+		Intent intent = new Intent(thisActivity, AlarmReceiver.class);
+		return PendingIntent.getActivity(thisActivity, 2, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 	}
 	
 	private void updateAlarmIntervalTV() {
