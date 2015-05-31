@@ -4,10 +4,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,16 +15,21 @@ import android.view.ViewGroup;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class AlarmClock extends Fragment implements OnValueChangeListener, OnClickListener {
 
-	private static final String ALARMSTATE_KEY = "alarmstate_sp_key";
-	private static final String ALARM_STARTHOUR_KEY = "alarm_starthour_sp_key";
-	private static final String ALARM_STARTMIN_KEY = "alarm_startmin_sp_key";
-	private static final String ALARM_ENDHOUR_KEY = "alarm_endhour_sp_key";
-	private static final String ALARM_ENDMIN_KEY = "alarm_endmin_sp_key";
+	public static final String ALARM_PREFERENCES = "sm_alarm_preferences";
+	public static final String ALARMSTATE_KEY = "alarmstate_sp_key";
+	public static final String ALARM_STARTHOUR_KEY = "alarm_starthour_sp_key";
+	public static final String ALARM_STARTMIN_KEY = "alarm_startmin_sp_key";
+	public static final String ALARM_ENDHOUR_KEY = "alarm_endhour_sp_key";
+	public static final String ALARM_ENDMIN_KEY = "alarm_endmin_sp_key";
+	
+	private static final int DEFAULT_START_HOUR = 7;
+	private static final int DEFAULT_START_MINUTE = 30;
+	private static final int DEFAULT_END_HOUR = 8;
+	private static final int DEFAULT_END_MINUTE = 0;
 	
 	private NumberPicker startHourNP;
 	private NumberPicker startMinuteNP;
@@ -36,10 +38,10 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	private ToggleButton alarmOnOffBtn;
 	private TextView alarmIntervalTV;
 	
-	private int startHour = 7;
-	private int startMinute = 30;
-	private int endHour = 8;
-	private int endMinute = 0;
+	private int startHour;
+	private int startMinute;
+	private int endHour;
+	private int endMinute;
 	
 	private Activity thisActivity;
 	
@@ -47,7 +49,6 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		thisActivity = activity;
-		
 	}
 	
 	@Override
@@ -62,14 +63,14 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 		alarmOnOffBtn = (ToggleButton) v.findViewById(R.id.alarmOnOffBtn);
 		alarmOnOffBtn.setOnClickListener(this);
 		
-		initNumberPickers();
-		updateAlarmIntervalTV();
+		setupNumberPickers();
 		
 		return v;
 	}
 	
-	private void saveAlarmState(boolean state) {
-		SharedPreferences.Editor spEditor = thisActivity.getPreferences(Context.MODE_PRIVATE).edit();
+	private void saveAlarmInformation(boolean state) {
+		SharedPreferences.Editor spEditor = thisActivity.getSharedPreferences(ALARM_PREFERENCES, 
+				                                                              Context.MODE_PRIVATE).edit();
 		spEditor.putBoolean(ALARMSTATE_KEY, state);
 		spEditor.putInt(ALARM_STARTHOUR_KEY, startHour);
 		spEditor.putInt(ALARM_STARTMIN_KEY, startMinute);
@@ -79,7 +80,11 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	}
 	
 	private boolean getAlarmState() {
-		SharedPreferences sp = thisActivity.getPreferences(Context.MODE_PRIVATE);
+		SharedPreferences sp = thisActivity.getSharedPreferences(ALARM_PREFERENCES, Context.MODE_PRIVATE);
+		startHour = sp.getInt(ALARM_STARTHOUR_KEY, DEFAULT_START_HOUR);
+		startMinute = sp.getInt(ALARM_STARTMIN_KEY, DEFAULT_START_MINUTE);
+		endHour = sp.getInt(ALARM_ENDHOUR_KEY, DEFAULT_END_HOUR);
+		endMinute = sp.getInt(ALARM_ENDMIN_KEY, DEFAULT_END_MINUTE);
 		return sp.getBoolean(ALARMSTATE_KEY, false);
 	}
 	
@@ -89,31 +94,25 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 		boolean alarmState = getAlarmState();
 		enableAlarmTimeChange(!alarmState);
 		alarmOnOffBtn.setChecked(alarmState);
+		initNumberPickers();
+		updateAlarmIntervalTV();
 	}
-	
-	private void startAlarm() {
-		AlarmManager am = (AlarmManager) thisActivity.getSystemService(Context.ALARM_SERVICE);
-		am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 3000,
-				        AlarmManager.INTERVAL_DAY, getAlarmPendingIntent());
-	}
-	
-	private void cancelAlarm() {
-		AlarmManager am = (AlarmManager) thisActivity.getSystemService(Context.ALARM_SERVICE);
-		am.cancel(getAlarmPendingIntent());
+
+	private void initNumberPickers() {
+		startHourNP.setValue(startHour);
+		startMinuteNP.setValue(startMinute);
+		endHourNP.setValue(endHour);
+		endMinuteNP.setValue(endMinute);
 	}
 	
 	@Override
 	public void onClick(View v) {
 		if(alarmOnOffBtn.isChecked()) {
-			startAlarm();
 			enableAlarmTimeChange(false);
-			saveAlarmState(true);
-			Toast.makeText(thisActivity, "Created daily alarm", Toast.LENGTH_SHORT).show();
+			saveAlarmInformation(true);
 		} else {
-			cancelAlarm();
 			enableAlarmTimeChange(true);
-			saveAlarmState(false);
-			Toast.makeText(thisActivity, "Daily alarm canceled", Toast.LENGTH_SHORT).show();
+			saveAlarmInformation(false);
 		}
 	}
 
@@ -122,11 +121,6 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 		startMinuteNP.setEnabled(enabled);
 		endHourNP.setEnabled(enabled);
 		endMinuteNP.setEnabled(enabled);
-	}
-	
-	private PendingIntent getAlarmPendingIntent() {
-		Intent intent = new Intent(thisActivity, AlarmReceiver.class);
-		return PendingIntent.getActivity(thisActivity, 2, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 	}
 	
 	private void updateAlarmIntervalTV() {
@@ -144,7 +138,7 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 										      diff.toPeriod().getHours(), diff.toPeriod().getMinutes()));
 	}
 	
-	private void initNumberPickers() {
+	private void setupNumberPickers() {
 		startHourNP.setMinValue(0);
 		startHourNP.setMaxValue(23);
 		startHourNP.setOnValueChangedListener(this);
@@ -160,11 +154,6 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 		endMinuteNP.setMinValue(0);
 		endMinuteNP.setMaxValue(59);
 		endMinuteNP.setOnValueChangedListener(this);
-		
-		startHourNP.setValue(startHour);
-		startMinuteNP.setValue(startMinute);
-		endHourNP.setValue(endHour);
-		endMinuteNP.setValue(endMinute);
 	}
 
 	@Override

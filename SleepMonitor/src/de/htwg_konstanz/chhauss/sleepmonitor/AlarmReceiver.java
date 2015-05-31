@@ -73,5 +73,4 @@ public class AlarmReceiver extends Activity {
 			wakeLock.release();
 		}
 	}
-
 }

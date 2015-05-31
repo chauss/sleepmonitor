@@ -10,10 +10,15 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
@@ -31,13 +36,20 @@ public class RecordingService extends Service implements SensorEventListener{
 	public static final String START_RECORDING_ACTION = "RecordingService.action.startRecording";
 	public static final String STOP_RECORDING_ACTION = "RecordingService.action.stopRecording";
 	
+	private static final int CHECK_WAITING_CONDITION_PERIOD = 10; //s
+	private static final double ENOUGH_MOVEMENT_TO_WAKE = 4.5;
+	private static final int ENOUGH_NOISE_TO_WAKE = 5000;
+	
 	private static final String DATE_TIME_FORMAT = "dd_MM_yyyy_HH_mm_ss";
 	private static final String devNull = "/dev/null";
+	
+	private static final Object ENOUGH_LOCK = new Object();
 	
 	private Recorder rec;
 	private SimpleDateFormat dateFormatter;
 	private DatabaseAdapter dba;
 	SensorManager sm;
+	private boolean reachedInterval = false;
 	
 	private String recordPath;
 	private String recordID;
@@ -47,8 +59,13 @@ public class RecordingService extends Service implements SensorEventListener{
 	private double acc_x;
 	private double acc_y;
 	private double acc_z;
+	
+	private boolean enoughNoiseOrMovementToWake = false;
+	
 	Timer acc_timer;
 	Timer volume_timer;
+	Timer waitTillAlarmInterval_timer;
+	Timer wakingCheck_timer;
 	
 	@Override
 	public void onCreate() {
@@ -64,11 +81,87 @@ public class RecordingService extends Service implements SensorEventListener{
     	recordID = dateFormatter.format(date);
     	recordPath = file_base + "/" + recordID + getString(R.string.record_file_ending);
 	}
+
+	private void initAlarm() {
+		SharedPreferences sp = getSharedPreferences(AlarmClock.ALARM_PREFERENCES, Context.MODE_PRIVATE);
+    	boolean alarmIsOn = sp.getBoolean(AlarmClock.ALARMSTATE_KEY, false);
+    	int startH = sp.getInt(AlarmClock.ALARM_STARTHOUR_KEY, 0);
+    	int startM = sp.getInt(AlarmClock.ALARM_STARTMIN_KEY, 0);
+    	int endH = sp.getInt(AlarmClock.ALARM_ENDHOUR_KEY, 0);
+    	int endM = sp.getInt(AlarmClock.ALARM_ENDMIN_KEY, 0);
+    	
+    	if(!alarmIsOn) {
+    		return;
+    	}
+    	
+    	DateTime now = new DateTime();
+    	DateTime start = new DateTime().withHourOfDay(startH).withMinuteOfHour(startM);
+		DateTime end = new DateTime().withHourOfDay(endH).withMinuteOfHour(endM);
+		
+		if(start.isBefore(now)) {
+			start = start.plusDays(1);
+		}
+		
+		while(end.isBefore(start)) {
+			end = end.plusDays(1);
+		}
+		
+		final Interval alarmInterval = new Interval(start, end);
+		System.out.println("done the main stuff to init the alarm and going to schedule wait-timer");
+		waitTillAlarmInterval_timer = new Timer();
+		TimerTask waitTillAlarmInterval_task = new TimerTask() {
+            
+            @Override
+            public void run() {
+            	System.out.println("going to schedule the alarm check timer");
+            	synchronized (ENOUGH_LOCK) {
+            		reachedInterval = true;
+            	}
+            	wakingCheck_timer = new Timer();
+            	TimerTask checkWakingConditions = new TimerTask() {
+
+					@Override
+					public void run() {
+						synchronized (ENOUGH_LOCK) {
+							System.out.println("checking if i can wake up the user:");
+							System.out.println(enoughNoiseOrMovementToWake);
+							System.out.println(alarmInterval.contains(new DateTime()));
+							DateTime now = new DateTime();
+							if(enoughNoiseOrMovementToWake || !alarmInterval.contains(now)) {
+								System.out.println("Going to wake up the user");
+								Intent intent = new Intent(RecordingService.this, AlarmReceiver.class);
+								intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+								startActivity(intent);
+								stopRecording();
+								// Make sure timer does not schedule another alarm
+								wakingCheck_timer.cancel();
+								wakingCheck_timer.purge();
+								wakingCheck_timer = null;
+								stopForeground(true);
+								stopSelf();
+							}
+						}
+					}
+            	};
+            	wakingCheck_timer.schedule(checkWakingConditions, 0, CHECK_WAITING_CONDITION_PERIOD * 1000);
+            }
+        };
+        waitTillAlarmInterval_timer.schedule(waitTillAlarmInterval_task, start.getMillis() - now.getMillis());
+        System.out.println("Scheduled timer in: " + (start.getMillis() - new DateTime().getMillis()));
+	}
 	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		stopRecording();
+		if(waitTillAlarmInterval_timer != null) {
+			waitTillAlarmInterval_timer.cancel();
+			waitTillAlarmInterval_timer.purge();
+		}
+		if(wakingCheck_timer != null) {
+			wakingCheck_timer.cancel();
+			wakingCheck_timer.purge();
+		}
 	}
 
 	private void initAccelerometer() {
@@ -101,7 +194,8 @@ public class RecordingService extends Service implements SensorEventListener{
 
     @Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		String action = intent.getAction();
+    	String action = intent.getAction();;
+    	System.out.println("###OnStartCommand: intent = " + intent + ", action = " + action);
 		
 		if(action.equals(START_RECORDING_ACTION)) {
 		    initAccelerometer();
@@ -111,11 +205,13 @@ public class RecordingService extends Service implements SensorEventListener{
 			noiseScanInterval = extras.getDouble("noiseScanInterval");
 			
 			startRecording();
+			initAlarm();
 			startForeground(1, getRecordingNotification());
 			
 		} else if(action.equals(STOP_RECORDING_ACTION)) {
 		    stopRecording();
 
+		    System.out.println("Going to start recorddetails activity");
 		    Intent startRecordDetailsIntent = new Intent(this, RecordDetails.class);
 			startRecordDetailsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startRecordDetailsIntent.putExtra("record", createRecordForRecordDetailsIntent());
@@ -170,7 +266,7 @@ public class RecordingService extends Service implements SensorEventListener{
 	}
 	
 	private void startRecording() {
-    	createRecorderInstance(recordID);
+    	createRecorderInstance();
     	
     	try {
     		rec.start();
@@ -194,9 +290,17 @@ public class RecordingService extends Service implements SensorEventListener{
             @Override
             public void run() {
                 Date date = new Date();
+                double movement = 0;
                 synchronized(RecordingService.class) {
+                	movement = Math.abs(acc_x) + Math.abs(acc_y) + Math.abs(acc_z) - 9.81;
                     dba.insertAccelerometerValues(dateFormatter.format(date), acc_x, acc_y, acc_z, recordID);
                     acc_x = acc_y = acc_z = 0;
+                }
+                synchronized(ENOUGH_LOCK) {
+                	if(reachedInterval && movement >= ENOUGH_MOVEMENT_TO_WAKE) {
+                		System.out.println("Enough movement to wake up: " + movement);
+                		enoughNoiseOrMovementToWake = true;
+                	}
                 }
             }
         };
@@ -210,13 +314,20 @@ public class RecordingService extends Service implements SensorEventListener{
 			@Override
 			public void run() {
 				Date date = new Date();
-				dba.insertVolume(dateFormatter.format(date), (int) rec.getAmplitudeEMA(), recordID);
+				int noiseLevel = (int) rec.getAmplitudeEMA();
+				dba.insertVolume(dateFormatter.format(date), noiseLevel, recordID);
+				synchronized(ENOUGH_LOCK) {
+					if(reachedInterval && noiseLevel >= ENOUGH_NOISE_TO_WAKE) {
+						System.out.println("Enough noise to wake up: " + noiseLevel);
+                		enoughNoiseOrMovementToWake = true;
+                	}
+                }
 			}
 		};
 		volume_timer.schedule(volume_task, 0, (long) (noiseScanInterval * 1000));
 	}
 
-	private void createRecorderInstance(String recordID) {
+	private void createRecorderInstance() {
 		if(recordToRecordFile) {
     		rec = new Recorder(recordPath);
     	} else {
@@ -228,16 +339,24 @@ public class RecordingService extends Service implements SensorEventListener{
 		if(volume_timer != null){
 			volume_timer.cancel();
 			volume_timer.purge();
+			volume_timer = null;
 		}
 		if(acc_timer != null) {
 		    acc_timer.cancel();
 		    acc_timer.purge();
+		    acc_timer = null;
 		}
 		if(dba != null) {
 		    dba.closeDatabase();
+		    dba = null;
 		}
-		
-		sm.unregisterListener(this);
-		rec.stop();
+		if(sm != null) {
+			sm.unregisterListener(this);
+			sm = null;
+		}
+		if(rec != null) {
+			rec.stop();
+			rec = null;
+		}
 	}
 }
