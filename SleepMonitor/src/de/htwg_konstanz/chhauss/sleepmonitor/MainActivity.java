@@ -30,7 +30,7 @@ import android.widget.Toast;
 public class MainActivity extends FragmentActivity implements ActionBar.TabListener, SensorEventListener {
 	
 	private static final String devNull = "/dev/null";
-	private static final int calibrationTime = 5;
+	private static final int calibrationTime = 20;
 	private ProgressDialog dialog;
 	
 	private int calibratedNoise = 0;
@@ -118,6 +118,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 				try {
 					rec.start();
 				} catch (Exception e) {}
+				rec.getAmplitudeEMA(); // Get that 0 away from call at first time
 				
 				while(dialog.getProgress() < dialog.getMax()) {
 					try {
@@ -134,9 +135,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 				dialog.dismiss();
 				
 				calibratedNoise = (int) rec.getAmplitudeEMA();
-				System.out.println(calibratedNoise);
 				rec.stop();
-				calibratedMovement = max(calibratedMovement - 9.86, 0);
+				calibratedMovement = max(calibratedMovement - 10.2, 0);
 				SharedPreferences.Editor spe = getSharedPreferences(AlarmClock.ALARM_PREFERENCES, Context.MODE_PRIVATE).edit();
 				spe.putInt(AlarmClock.ALARM_NOISE_KEY, calibratedNoise);
 				spe.putLong(AlarmClock.ALARM_MOVEMENT_KEY, Double.doubleToRawLongBits(calibratedMovement));
