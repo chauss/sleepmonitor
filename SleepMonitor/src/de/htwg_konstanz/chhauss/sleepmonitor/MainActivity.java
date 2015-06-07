@@ -5,6 +5,7 @@ import java.io.File;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
@@ -18,6 +19,13 @@ import android.widget.Toast;
 
 
 public class MainActivity extends FragmentActivity implements ActionBar.TabListener {
+	
+	private static final String CAL_MOV_KEY = "calibration_movement_key";
+	private static final String CAL_NOISE_KEY = "calibration_noise_key";
+	
+	private static final int calibrationTime = 5;
+	private ProgressDialog dialog;
+	
 	ActionBar actionBar;
 	ViewPager viewPager;
 	FragmentPageAdapter fpa;
@@ -29,11 +37,13 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
 	int resetDatabaseId = Menu.FIRST;
 	int deleteRecordsId = Menu.FIRST +1;
+	int calibrateId = Menu.FIRST +2;
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
 	    menu.add(group1Id, resetDatabaseId, resetDatabaseId, getString(R.string.resetDatabase));
 	    menu.add(group1Id, deleteRecordsId, deleteRecordsId, getString(R.string.deleteAllRecords));
+	    menu.add(group1Id, calibrateId, calibrateId, getString(R.string.calibrate));
 
 	    return super.onCreateOptionsMenu(menu); 
     }
@@ -41,19 +51,83 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-    switch (item.getItemId()) {
-    case 1:
-    	resetDatabase();
-    	return true;
-	case 2:
-		deleteAllRecords();
-		return true;
-	default:
-		return super.onOptionsItemSelected(item);
-    }
-}
+	    switch (item.getItemId()) {
+	    case 1:
+	    	resetDatabase();
+	    	return true;
+		case 2:
+			deleteAllRecords();
+			return true;
+		case 3:
+			dialog = new ProgressDialog(MainActivity.this);
+			new Thread(new Runnable() {
 
-    @Override
+				@Override
+				public void run() {
+					calibrate();
+				}
+				
+			}).start();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+	    }
+	}
+
+    private void calibrate() {
+    	System.out.println("1");
+    	dialog.setTitle("Calibrating...");
+    	System.out.println("2");
+    	dialog.setMessage("Please turn around in bed");
+    	System.out.println("3");
+    	dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    	System.out.println("4");
+    	dialog.setProgress(0);
+    	System.out.println("5");
+    	dialog.setMax(calibrationTime);
+    	System.out.println("6");
+    	runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				dialog.show();
+			}
+    		
+    	});
+    	
+    	Thread caliThread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				System.out.println(dialog.getProgress());
+				while(dialog.getProgress() < dialog.getMax()) {
+					System.out.println(dialog.getProgress());
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {}
+					dialog.incrementProgressBy(1);
+				}
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {}
+				dialog.dismiss();
+				runOnUiThread(new Runnable() {
+					
+					@Override
+					public void run() {
+						Toast.makeText(MainActivity.this, "Calibration successful", Toast.LENGTH_SHORT).show();
+					}
+				});
+			}
+    		
+    	});
+    	caliThread.start();
+    	try {
+			caliThread.join();
+		} catch (InterruptedException e) {}
+	}
+
+	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
