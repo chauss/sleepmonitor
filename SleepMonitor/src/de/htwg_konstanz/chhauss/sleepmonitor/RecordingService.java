@@ -31,19 +31,20 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
-public class RecordingService extends Service implements SensorEventListener{
+public class RecordingService extends Service implements SensorEventListener {
 	
 	public static final String START_RECORDING_ACTION = "RecordingService.action.startRecording";
 	public static final String STOP_RECORDING_ACTION = "RecordingService.action.stopRecording";
 	
 	private static final int CHECK_WAITING_CONDITION_PERIOD = 10; //s
-	private static final double ENOUGH_MOVEMENT_TO_WAKE = 4.5;
-	private static final int ENOUGH_NOISE_TO_WAKE = 5000;
 	
 	private static final String DATE_TIME_FORMAT = "dd_MM_yyyy_HH_mm_ss";
 	private static final String devNull = "/dev/null";
 	
 	private static final Object ENOUGH_LOCK = new Object();
+
+	private double enough_movement_to_wake;
+	private int enough_noise_to_wake;
 	
 	private Recorder rec;
 	private SimpleDateFormat dateFormatter;
@@ -80,6 +81,11 @@ public class RecordingService extends Service implements SensorEventListener{
     	Date date = new Date();
     	recordID = dateFormatter.format(date);
     	recordPath = file_base + "/" + recordID + getString(R.string.record_file_ending);
+    	
+    	//
+    	SharedPreferences sp = getSharedPreferences(AlarmClock.ALARM_PREFERENCES, Context.MODE_PRIVATE);
+    	enough_noise_to_wake = sp.getInt(AlarmClock.ALARM_NOISE_KEY, 0);
+    	enough_movement_to_wake = Double.longBitsToDouble(sp.getLong(AlarmClock.ALARM_MOVEMENT_KEY, 0));
 	}
 
 	private void initAlarm() {
@@ -107,13 +113,11 @@ public class RecordingService extends Service implements SensorEventListener{
 		}
 		
 		final Interval alarmInterval = new Interval(start, end);
-		System.out.println("done the main stuff to init the alarm and going to schedule wait-timer");
 		waitTillAlarmInterval_timer = new Timer();
 		TimerTask waitTillAlarmInterval_task = new TimerTask() {
             
             @Override
             public void run() {
-            	System.out.println("going to schedule the alarm check timer");
             	synchronized (ENOUGH_LOCK) {
             		reachedInterval = true;
             	}
@@ -123,12 +127,8 @@ public class RecordingService extends Service implements SensorEventListener{
 					@Override
 					public void run() {
 						synchronized (ENOUGH_LOCK) {
-							System.out.println("checking if i can wake up the user:");
-							System.out.println(enoughNoiseOrMovementToWake);
-							System.out.println(alarmInterval.contains(new DateTime()));
 							DateTime now = new DateTime();
 							if(enoughNoiseOrMovementToWake || !alarmInterval.contains(now)) {
-								System.out.println("Going to wake up the user");
 								Intent intent = new Intent(RecordingService.this, AlarmReceiver.class);
 								intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 								startActivity(intent);
@@ -147,7 +147,6 @@ public class RecordingService extends Service implements SensorEventListener{
             }
         };
         waitTillAlarmInterval_timer.schedule(waitTillAlarmInterval_task, start.getMillis() - now.getMillis());
-        System.out.println("Scheduled timer in: " + (start.getMillis() - new DateTime().getMillis()));
 	}
 	
 	@Override
@@ -195,7 +194,6 @@ public class RecordingService extends Service implements SensorEventListener{
     @Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
     	String action = intent.getAction();;
-    	System.out.println("###OnStartCommand: intent = " + intent + ", action = " + action);
 		
 		if(action.equals(START_RECORDING_ACTION)) {
 		    initAccelerometer();
@@ -211,7 +209,6 @@ public class RecordingService extends Service implements SensorEventListener{
 		} else if(action.equals(STOP_RECORDING_ACTION)) {
 		    stopRecording();
 
-		    System.out.println("Going to start recorddetails activity");
 		    Intent startRecordDetailsIntent = new Intent(this, RecordDetails.class);
 			startRecordDetailsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startRecordDetailsIntent.putExtra("record", createRecordForRecordDetailsIntent());
@@ -297,8 +294,7 @@ public class RecordingService extends Service implements SensorEventListener{
                     acc_x = acc_y = acc_z = 0;
                 }
                 synchronized(ENOUGH_LOCK) {
-                	if(reachedInterval && movement >= ENOUGH_MOVEMENT_TO_WAKE) {
-                		System.out.println("Enough movement to wake up: " + movement);
+                	if(reachedInterval && movement >= enough_movement_to_wake) {
                 		enoughNoiseOrMovementToWake = true;
                 	}
                 }
@@ -317,8 +313,7 @@ public class RecordingService extends Service implements SensorEventListener{
 				int noiseLevel = (int) rec.getAmplitudeEMA();
 				dba.insertVolume(dateFormatter.format(date), noiseLevel, recordID);
 				synchronized(ENOUGH_LOCK) {
-					if(reachedInterval && noiseLevel >= ENOUGH_NOISE_TO_WAKE) {
-						System.out.println("Enough noise to wake up: " + noiseLevel);
+					if(reachedInterval && noiseLevel >= enough_noise_to_wake) {
                 		enoughNoiseOrMovementToWake = true;
                 	}
                 }

@@ -1,11 +1,20 @@
 package de.htwg_konstanz.chhauss.sleepmonitor;
 
+import static java.lang.Math.max;
+
 import java.io.File;
+import java.util.List;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
@@ -18,13 +27,14 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 
-public class MainActivity extends FragmentActivity implements ActionBar.TabListener {
+public class MainActivity extends FragmentActivity implements ActionBar.TabListener, SensorEventListener {
 	
-	private static final String CAL_MOV_KEY = "calibration_movement_key";
-	private static final String CAL_NOISE_KEY = "calibration_noise_key";
-	
+	private static final String devNull = "/dev/null";
 	private static final int calibrationTime = 5;
 	private ProgressDialog dialog;
+	
+	private int calibratedNoise = 0;
+	private double calibratedMovement = 0;
 	
 	ActionBar actionBar;
 	ViewPager viewPager;
@@ -32,6 +42,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	AlarmClock ac;
 	SleepMonitoring sm;
 	MyRecords rm;
+	SensorManager sensorManager;
 	
 	private int group1Id = 1;
 
@@ -60,71 +71,93 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 			return true;
 		case 3:
 			dialog = new ProgressDialog(MainActivity.this);
+			initAccelerometer();
 			new Thread(new Runnable() {
-
 				@Override
 				public void run() {
 					calibrate();
 				}
-				
 			}).start();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 	    }
 	}
+	
+	private void initAccelerometer() {
+	    sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+	    
+	    List<Sensor> sensorList = sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        if (sensorList.size() > 0) {
+        	sensorManager.registerListener(this,
+            							   sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+            							   SensorManager.SENSOR_DELAY_GAME);
+        } else {
+            //TODO was passiert wenn man keinen accelerometer hat
+        }
+    }
 
     private void calibrate() {
-    	System.out.println("1");
     	dialog.setTitle("Calibrating...");
-    	System.out.println("2");
     	dialog.setMessage("Please turn around in bed");
-    	System.out.println("3");
     	dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-    	System.out.println("4");
     	dialog.setProgress(0);
-    	System.out.println("5");
     	dialog.setMax(calibrationTime);
-    	System.out.println("6");
     	runOnUiThread(new Runnable() {
-
 			@Override
 			public void run() {
 				dialog.show();
 			}
-    		
     	});
     	
     	Thread caliThread = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				System.out.println(dialog.getProgress());
+				Recorder rec = new Recorder(devNull);
+				try {
+					rec.start();
+				} catch (Exception e) {}
+				
 				while(dialog.getProgress() < dialog.getMax()) {
-					System.out.println(dialog.getProgress());
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {}
 					dialog.incrementProgressBy(1);
 				}
+				sensorManager.unregisterListener(MainActivity.this);
+				sensorManager = null;
+
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {}
 				dialog.dismiss();
+				
+				calibratedNoise = (int) rec.getAmplitudeEMA();
+				System.out.println(calibratedNoise);
+				rec.stop();
+				calibratedMovement = max(calibratedMovement - 9.86, 0);
+				SharedPreferences.Editor spe = getSharedPreferences(AlarmClock.ALARM_PREFERENCES, Context.MODE_PRIVATE).edit();
+				spe.putInt(AlarmClock.ALARM_NOISE_KEY, calibratedNoise);
+				spe.putLong(AlarmClock.ALARM_MOVEMENT_KEY, Double.doubleToRawLongBits(calibratedMovement));
+				spe.commit();
+				
 				runOnUiThread(new Runnable() {
-					
 					@Override
 					public void run() {
-						Toast.makeText(MainActivity.this, "Calibration successful", Toast.LENGTH_SHORT).show();
+						Toast.makeText(MainActivity.this,
+								       String.format("Calibration successful!\nMovement = %.2f\nNoise = %d", 
+								    		         calibratedMovement, calibratedNoise),
+								       Toast.LENGTH_SHORT).show();
 					}
 				});
 			}
-    		
     	});
     	caliThread.start();
     	try {
 			caliThread.join();
 		} catch (InterruptedException e) {}
+    	
 	}
 
 	@Override
@@ -240,4 +273,16 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		}
 
 	}
+
+	@Override
+    public void onSensorChanged(SensorEvent event) {
+        if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            synchronized(RecordingService.class) {
+            	calibratedMovement = max(calibratedMovement, event.values[0] + event.values[1] + event.values[2]);
+            }
+        }
+    }
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 }

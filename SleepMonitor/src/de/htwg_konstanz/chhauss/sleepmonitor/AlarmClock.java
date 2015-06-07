@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class AlarmClock extends Fragment implements OnValueChangeListener, OnClickListener {
@@ -25,6 +26,8 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	public static final String ALARM_STARTMIN_KEY = "alarm_startmin_sp_key";
 	public static final String ALARM_ENDHOUR_KEY = "alarm_endhour_sp_key";
 	public static final String ALARM_ENDMIN_KEY = "alarm_endmin_sp_key";
+	public static final String ALARM_NOISE_KEY = "alarm_noise_sp_key";
+	public static final String ALARM_MOVEMENT_KEY = "alarm_movement_sp_key";
 	
 	private static final int DEFAULT_START_HOUR = 7;
 	private static final int DEFAULT_START_MINUTE = 30;
@@ -108,6 +111,12 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	@Override
 	public void onClick(View v) {
 		if(alarmOnOffBtn.isChecked()) {
+			SharedPreferences sp = thisActivity.getSharedPreferences(ALARM_PREFERENCES, Context.MODE_PRIVATE);
+			if(sp.getInt(ALARM_NOISE_KEY, -1) == -1 || Double.longBitsToDouble(sp.getLong(ALARM_MOVEMENT_KEY, 0)) == 0 ) {
+				alarmOnOffBtn.setChecked(false);
+				Toast.makeText(thisActivity, "You need to calibrate before using the alarm clock", Toast.LENGTH_SHORT).show();
+				return;
+			}
 			enableAlarmTimeChange(false);
 			saveAlarmInformation(true);
 		} else {
