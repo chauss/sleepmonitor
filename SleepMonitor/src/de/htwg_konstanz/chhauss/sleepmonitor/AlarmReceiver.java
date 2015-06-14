@@ -70,6 +70,7 @@ public class AlarmReceiver extends Activity {
 
 	public void stopAlarmBtnClicked(View v) {
 		mediaPlayer.stop();
+		mediaPlayer.release();
 		finish();
 	}
 	
