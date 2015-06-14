@@ -39,7 +39,6 @@ public class Recorder {
     }
         
     public double getAmplitude() {
-    	System.out.println("########################################" + mRecorder);
         if (mRecorder != null)
             return  (mRecorder.getMaxAmplitude());
         else

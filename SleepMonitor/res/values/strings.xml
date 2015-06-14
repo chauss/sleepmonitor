@@ -62,5 +62,6 @@
         <string name="on">On</string>
         <string name="off">Off</string>
         <string name="calibrate">Calibrate</string>
+        <string name="stopAlarm">Stop Alarm</string>
 
 </resources>

@@ -41,7 +41,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	FragmentPageAdapter fpa;
 	AlarmClock ac;
 	SleepMonitoring sm;
-	MyRecords rm;
+	MyRecords mr;
 	SensorManager sensorManager;
 	
 	private int group1Id = 1;
@@ -192,8 +192,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	@Override
 	public void onTabSelected(Tab tab, FragmentTransaction ft) {
 		viewPager.setCurrentItem(tab.getPosition());
-		if(rm != null) {
-			rm.refreshListAdapter();
+		if(mr != null) {
+			mr.refreshListAdapter();
 		}
 	}
 
@@ -221,8 +221,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	private void resetDatabase() {
 		DatabaseAdapter dba = new DatabaseAdapter(this);
 		dba.resetDatabase();
-		if(rm != null) {
-			rm.refreshListAdapter();
+		if(mr != null) {
+			mr.refreshListAdapter();
 		}
 		Toast.makeText(this, R.string.resetedDatabase, Toast.LENGTH_SHORT).show();
 	}
@@ -235,8 +235,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		for(File file : files) {
 			file.delete();
 		}
-		if(rm != null) {
-			rm.refreshListAdapter();
+		if(mr != null) {
+			mr.refreshListAdapter();
 		}
 		Toast.makeText(this,
 				       String.format(getString(R.string.succRemovedAllRecordFiles), files.length),
@@ -259,8 +259,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 				sm = new SleepMonitoring();
 				return sm;
 			case 2:
-				rm = new MyRecords();
-				return rm;
+				mr = new MyRecords();
+				return mr;
 			default:
 				sm = new SleepMonitoring();
 				return sm;

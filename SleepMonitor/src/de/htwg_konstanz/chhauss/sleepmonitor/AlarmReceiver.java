@@ -2,6 +2,8 @@ package de.htwg_konstanz.chhauss.sleepmonitor;
 
 import java.io.IOException;
 
+import org.joda.time.LocalTime;
+
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
@@ -14,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 public class AlarmReceiver extends Activity {
 	private MediaPlayer mediaPlayer;
@@ -31,6 +34,10 @@ public class AlarmReceiver extends Activity {
         						  WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
         						  WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         setContentView(R.layout.activity_alarmreceiver);
+        
+        TextView clockTV = (TextView) findViewById(R.id.alarmReceiverClockTV);
+        LocalTime curTime = new LocalTime();
+        clockTV.setText(curTime.getHourOfDay() + ":" + curTime.getMinuteOfHour());
         
         playSound();
 	}

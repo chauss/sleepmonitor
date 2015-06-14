@@ -5,11 +5,20 @@
     android:gravity="center"
     android:orientation="vertical" >
 
+    <TextView
+        android:id="@+id/alarmReceiverClockTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="70dp"
+        android:text="@string/emptyString"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="60sp" />
+
     <Button
         android:id="@+id/stopAlarmBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Stop Alarm"
-        android:onClick="stopAlarmBtnClicked" />
+        android:onClick="stopAlarmBtnClicked"
+        android:text="@string/stopAlarm" />
 
 </LinearLayout>

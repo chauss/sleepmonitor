@@ -112,7 +112,8 @@ public class AlarmClock extends Fragment implements OnValueChangeListener, OnCli
 	public void onClick(View v) {
 		if(alarmOnOffBtn.isChecked()) {
 			SharedPreferences sp = thisActivity.getSharedPreferences(ALARM_PREFERENCES, Context.MODE_PRIVATE);
-			if(sp.getInt(ALARM_NOISE_KEY, -1) == -1 || Double.longBitsToDouble(sp.getLong(ALARM_MOVEMENT_KEY, 0)) == 0 ) {
+			if(sp.getInt(ALARM_NOISE_KEY, -1) == -1 || 
+			   Double.longBitsToDouble(sp.getLong(ALARM_MOVEMENT_KEY, Double.doubleToLongBits(-1))) == -1 ) {
 				alarmOnOffBtn.setChecked(false);
 				Toast.makeText(thisActivity, "You need to calibrate before using the alarm clock", Toast.LENGTH_SHORT).show();
 				return;
