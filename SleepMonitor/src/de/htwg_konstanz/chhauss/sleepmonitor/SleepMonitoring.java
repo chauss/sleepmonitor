@@ -6,6 +6,7 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -105,6 +106,11 @@ public class SleepMonitoring extends Fragment implements OnClickListener {
 	
 	public void onRecordButtonClicked(View v)  {
 		if(!recording){
+			SharedPreferences sp = thisActivity.getSharedPreferences(AlarmClock.ALARM_PREFERENCES, Context.MODE_PRIVATE);
+			if(sp.getBoolean(AlarmClock.ALARMSTATE_KEY, false) && !recordUserData) {
+				Toast.makeText(thisActivity, "Need to record userdata for the alarm clock", Toast.LENGTH_SHORT).show();
+				return;
+			}
 			Intent starter = new Intent(thisActivity, RecordingService.class);
 			starter.putExtra("recordUserData", recordUserData);
 			starter.putExtra("recordToRecordFiles", recordToRecordFiles);
