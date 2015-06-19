@@ -26,19 +26,7 @@ public class DatabaseAdapter {
 		dateFormatter = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.getDefault());
 	}
 	
-	public long insertVolume(String dateAndTime, int volume, String recordID) {
-		openDatabase();
-		
-		ContentValues cv = new ContentValues();
-		cv.put(DatabaseHelper.DATEANDTIME, dateAndTime);
-		cv.put(DatabaseHelper.VOLUME, volume);
-		cv.put(DatabaseHelper.RECORD_ID, recordID);
-		long id = db.insert(DatabaseHelper.TABLE_SLEEPVOLUME, null, cv);
-		
-		return id;
-	}
-	
-	public long insertAccelerometerValues(String dateAndTime, double x, double y, double z, String recordID) {
+	public long insertDataValues(String dateAndTime, double x, double y, double z, int volume, String recordID) {
 		openDatabase();
 		
         ContentValues cv = new ContentValues();
@@ -46,16 +34,16 @@ public class DatabaseAdapter {
         cv.put(DatabaseHelper.ACC_X, x);
         cv.put(DatabaseHelper.ACC_Y, y);
         cv.put(DatabaseHelper.ACC_Z, z);
+        cv.put(DatabaseHelper.VOLUME, volume);
         cv.put(DatabaseHelper.RECORD_ID, recordID);
-        long id = db.insert(DatabaseHelper.TABLE_ACCELEROMETER, null, cv);
+        long id = db.insert(DatabaseHelper.TABLE_DATA, null, cv);
         
         return id;
     }
 	
 	public int deleteRecordDataByID(String recordID) {
 		openDatabase();
-		int count = db.delete(DatabaseHelper.TABLE_SLEEPVOLUME, DatabaseHelper.RECORD_ID + "=?", new String[] {recordID});
-		count += db.delete(DatabaseHelper.TABLE_ACCELEROMETER, DatabaseHelper.RECORD_ID + "=?", new String[] {recordID});
+		int count = db.delete(DatabaseHelper.TABLE_DATA, DatabaseHelper.RECORD_ID + "=?", new String[] {recordID});
 		closeDatabase();
 		return count;
 	}
@@ -64,7 +52,7 @@ public class DatabaseAdapter {
 		openDatabase();
 		
 		String[] columns = {DatabaseHelper.DATEANDTIME, DatabaseHelper.VOLUME, DatabaseHelper.RECORD_ID};
-		Cursor cursor = db.query(DatabaseHelper.TABLE_SLEEPVOLUME,
+		Cursor cursor = db.query(DatabaseHelper.TABLE_DATA,
 								 columns,
 								 DatabaseHelper.RECORD_ID + " = '" + recordID + "'",
 							 	 null, null, null, null);
@@ -94,7 +82,7 @@ public class DatabaseAdapter {
 		return result;
 	}
 	
-	public HashMap<Date, Double>  selectAllAccValuesByRecordID(String recordID) {
+	public HashMap<Date, Double> selectAllAccValuesByRecordID(String recordID) {
 	    openDatabase();
 	    
 	    String[] columns = {DatabaseHelper.DATEANDTIME,
@@ -102,7 +90,7 @@ public class DatabaseAdapter {
 	                        DatabaseHelper.ACC_Y,
 	                        DatabaseHelper.ACC_Z,
 	                        DatabaseHelper.RECORD_ID};
-        Cursor cursor = db.query(DatabaseHelper.TABLE_ACCELEROMETER,
+        Cursor cursor = db.query(DatabaseHelper.TABLE_DATA,
                                  columns,
                                  DatabaseHelper.RECORD_ID + " = '" + recordID + "'",
                                  null, null, null, null);
@@ -139,7 +127,7 @@ public class DatabaseAdapter {
 		openDatabase();
 		
 		String[] columns = {DatabaseHelper.RECORD_ID};
-		Cursor cursor = db.query(true, DatabaseHelper.TABLE_SLEEPVOLUME,
+		Cursor cursor = db.query(true, DatabaseHelper.TABLE_DATA,
 								 columns,
 								 null, null, null, null, null, null);
 		if(cursor.getColumnCount() == 0) {
@@ -173,24 +161,22 @@ public class DatabaseAdapter {
 	
 	public void resetDatabase() {
 		openDatabase();
-		db.delete(DatabaseHelper.TABLE_SLEEPVOLUME, null, null);
-		db.delete(DatabaseHelper.TABLE_ACCELEROMETER, null, null);
+		db.delete(DatabaseHelper.TABLE_DATA, null, null);
 	}
 	
 	static class DatabaseHelper extends SQLiteOpenHelper{
 		private static final String DB_NAME = "sleepmonitor.db";
-		private static final int DB_VERSION = 2;
+		private static final int DB_VERSION = 1;
 		
-		private static final String TABLE_SLEEPVOLUME = "SLEEPVOLUME";
+		private static final String TABLE_DATA = "DATA";
 		private static final String UID = "_id";
 		private static final String DATEANDTIME = "DateAndTime";
-		private static final String VOLUME = "Volume";
-		private static final String RECORD_ID = "RecordID";
-		
-		private static final String TABLE_ACCELEROMETER = "ACCELEROMETER";
 		private static final String ACC_X = "Acc_x";
 		private static final String ACC_Y = "Acc_y";
 		private static final String ACC_Z = "Acc_z";
+		private static final String VOLUME = "Volume";
+		private static final String RECORD_ID = "RecordID";
+		
 		
 		
 		public DatabaseHelper(Context context) {
@@ -200,17 +186,13 @@ public class DatabaseAdapter {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			try {
-				db.execSQL("CREATE TABLE " + TABLE_SLEEPVOLUME +
-						   "(" + UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-						   DATEANDTIME + " VARCHAR(20)," +
-						   VOLUME + " INTEGER," +
-						   RECORD_ID + " VARCHAR(20));");
-				db.execSQL("CREATE TABLE " + TABLE_ACCELEROMETER +
+				db.execSQL("CREATE TABLE " + TABLE_DATA +
 						   "(" + UID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 						   DATEANDTIME + " VARCHAR(20)," +
 						   ACC_X + " REAL," +
 						   ACC_Y + " REAL," +
 						   ACC_Z + " REAL," +
+						   VOLUME + " INTEGER," +
 						   RECORD_ID + " VARCHAR(20));");
 			} catch(SQLException e) {
 				e.printStackTrace();
@@ -219,8 +201,7 @@ public class DatabaseAdapter {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL("DROP TABLE IF EXISTS " + TABLE_SLEEPVOLUME);
-			db.execSQL("DROP TABLE IF EXISTS " + TABLE_ACCELEROMETER);
+			db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
 			onCreate(db);
 		}
 	}

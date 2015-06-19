@@ -63,8 +63,7 @@ public class RecordingService extends Service implements SensorEventListener {
 	
 	private boolean enoughNoiseOrMovementToWake = false;
 	
-	Timer acc_timer;
-	Timer volume_timer;
+	Timer data_timer;
 	Timer waitTillAlarmInterval_timer;
 	Timer wakingCheck_timer;
 	
@@ -275,51 +274,35 @@ public class RecordingService extends Service implements SensorEventListener {
     	dba = new DatabaseAdapter(this);
     	
     	if(recordUserData) {
-			startVolumeTimer();
-			startAccTimer();
+			startDataTimer();
     	}
 	}
 
-	private void startAccTimer() {
-		acc_timer = new Timer();
+	private void startDataTimer() {
+		data_timer = new Timer();
 		TimerTask acc_task = new TimerTask() {
             
             @Override
             public void run() {
                 Date date = new Date();
                 double movement = 0;
+                int noiseLevel = (int) rec.getAmplitudeEMA();
+
                 synchronized(RecordingService.class) {
                 	movement = Math.abs(acc_x) + Math.abs(acc_y) + Math.abs(acc_z) - 9.81;
-                    dba.insertAccelerometerValues(dateFormatter.format(date), acc_x, acc_y, acc_z, recordID);
+                    dba.insertDataValues(dateFormatter.format(date), acc_x, acc_y, acc_z,noiseLevel, recordID);
                     acc_x = acc_y = acc_z = 0;
                 }
+                
                 synchronized(ENOUGH_LOCK) {
-                	if(reachedInterval && movement >= enough_movement_to_wake) {
+                	if(reachedInterval &&
+                	   (movement >= enough_movement_to_wake || noiseLevel >= enough_noise_to_wake)) {
                 		enoughNoiseOrMovementToWake = true;
                 	}
                 }
             }
         };
-        acc_timer.schedule(acc_task, 0, (long) (noiseScanInterval * 1000));
-	}
-
-	private void startVolumeTimer() {
-		volume_timer = new Timer();
-		TimerTask volume_task = new TimerTask() {
-
-			@Override
-			public void run() {
-				Date date = new Date();
-				int noiseLevel = (int) rec.getAmplitudeEMA();
-				dba.insertVolume(dateFormatter.format(date), noiseLevel, recordID);
-				synchronized(ENOUGH_LOCK) {
-					if(reachedInterval && noiseLevel >= enough_noise_to_wake) {
-                		enoughNoiseOrMovementToWake = true;
-                	}
-                }
-			}
-		};
-		volume_timer.schedule(volume_task, 0, (long) (noiseScanInterval * 1000));
+        data_timer.schedule(acc_task, 0, (long) (noiseScanInterval * 1000));
 	}
 
 	private void createRecorderInstance() {
@@ -331,15 +314,10 @@ public class RecordingService extends Service implements SensorEventListener {
 	}
 	
 	private void stopRecording() {
-		if(volume_timer != null){
-			volume_timer.cancel();
-			volume_timer.purge();
-			volume_timer = null;
-		}
-		if(acc_timer != null) {
-		    acc_timer.cancel();
-		    acc_timer.purge();
-		    acc_timer = null;
+		if(data_timer != null) {
+		    data_timer.cancel();
+		    data_timer.purge();
+		    data_timer = null;
 		}
 		if(dba != null) {
 		    dba.closeDatabase();
